@@ -15,17 +15,17 @@ echo "Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Ti
 
 case "${1}" in
 	_parallel*)
-        sudo rm *parallel* 2>/dev/null
+        rm *parallel* 2>/dev/null
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${RESULT_FILE}
 		;;
 	_cpu*)
-        sudo rm *cpu* 2>/dev/null
+        rm *cpu* 2>/dev/null
 		;;&
 	_mem*)
-        sudo rm *mem* 2>/dev/null
+        rm *mem* 2>/dev/null
 		;;&
 	_default*)
-		sudo rm *default* 2>/dev/null
+		rm *default* 2>/dev/null
 		;;&
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096
