@@ -2,7 +2,7 @@
 
 SERVER_IP="192.168.51.232"
 RESULT_DIR="$HOME/net_result/throughput/"
-RESULT_FILE_PREFIX="res_throughput_"
+RESULT_FILE_PREFIX="res_throughput"
 REPEAT=3
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
@@ -15,17 +15,17 @@ echo "Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Ti
 
 case "${1}" in
 	_parallel*)
-        rm *parallel* 2>/dev/null
+        sudo rm *parallel* 2>/dev/null
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${RESULT_FILE}
 		;;
 	_cpu*)
-        rm *cpu* 2>/dev/null
+        sudo rm *cpu* 2>/dev/null
 		;;&
 	_mem*)
-        rm *mem* 2>/dev/null
+        sudo rm *mem* 2>/dev/null
 		;;&
 	_default*)
-		rm *default* 2>/dev/null
+		sudo rm *default* 2>/dev/null
 		;;&
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096
@@ -38,5 +38,5 @@ case "${1}" in
 		;;
 esac
 
-RESULT_FILE="${RESULT_FILE}.txt"
+mv ${RESULT_FILE} ${RESULT_FILE}.txt
 
