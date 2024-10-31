@@ -34,7 +34,7 @@ elif [ ! -z ${MEMORY} ]; then
 	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _mem_${MEMORY}_
 elif [ ! -z ${STREAM_NUM} ]; then
 	seq 1 ${STREAM_NUM} | \
-		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _parallel_{}_
+		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _parallel_{}
 else	
 	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _default_
 fi

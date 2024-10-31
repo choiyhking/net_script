@@ -9,7 +9,7 @@ mkdir -p ${RESULT_DIR} 2>/dev/null
 #rm ${RESULT_DIR}${RESULT_FILE_PREFIX}* 2>/dev/null
 
 
-RESULT_FILE="${RESULT_DIR}${1}${RESULT_FILE_PREFIX}"
+RESULT_FILE="${RESULT_DIR}${RESULT_FILE_PREFIX}${1}"
 echo "Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)" \
 	> ${RESULT_FILE}
 
