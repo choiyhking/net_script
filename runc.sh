@@ -68,5 +68,5 @@ else
 fi
 
 echo "Stop and Remove container..."
-sudo docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
-sudo docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
