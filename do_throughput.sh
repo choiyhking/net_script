@@ -22,7 +22,7 @@ case "${2}" in
 			echo "${HEADER}" > ${RESULT_FILE}
 		fi
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${RESULT_FILE}
-		;;
+		;;&
 
 	_cpu*)
         rm ${RESULT_DIR}*${2}* 2>/dev/null
