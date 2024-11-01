@@ -2,11 +2,8 @@
 
 CONTAINER_NAME="runc"
 IMAGE_NAME="net_ubuntu"
-#RESULT_DIR="$HOME/net_result/runc/throughput"
+REPEAT=3
 
-# 옵션 파싱
-# : 유효하지 않은 옵션이 주어졌을때 오류 메시지 출력
-# c: 해당 옵션이 인자를 필요로 한다는 의미
 while getopts ":c:m:s:n:" opt; do
   case $opt in
     c) CPU=${OPTARG} ;;
@@ -18,35 +15,54 @@ while getopts ":c:m:s:n:" opt; do
   esac
 done
 
-#mkdir -p ${RESULT_DIR} 2>/dev/null
-
-sudo docker start ${CONTAINER_NAME} 2>/dev/null
-
-
 if [ ! -z ${CPU} ]; then
-	sudo docker update --cpus=${CPU} ${CONTAINER_NAME} 2>/dev/null
+	sudo docker run -d ${IMAGE_NAME} \
+		--name ${CONTAINER_NAME} \
+		--cpus=${CPU} \
+		-v "$HOME/net_result:/root/net_result"
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_
+	sudo docker stop ${CONTAINER_NAME}
+	sudo docker rm ${CONTAINER_NAME}
+	
 elif [ ! -z ${MEMORY} ]; then
-	sudo docker update --memory=${MEMORY} --memory-swap=${MEMORY} ${CONTAINER_NAME} 2>/dev/null
+	sudo docker run -d ${IMAGE_NAME} \
+		--name ${CONTAINER_NAME} \
+		--memory=${MEMORY} \
+		--memory-swap=${MEMORY} \
+		-v "$HOME/net_result:/root/net_result"
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_
+	sudo docker stop ${CONTAINER_NAME}
+	sudo docker rm ${CONTAINER_NAME}
+
 elif [ ! -z ${STREAM_NUM} ]; then
-	# 굳이 컨테이너에서 지울 필요 없네 HOST에서 지우자
-	sudo docker exec ${CONTAINER_NAME} rm /root/net_result/throughput/*parallel* 2>/dev/null
-	for i in {0..3}
+	sudo rm $HOME/net_result/throughput/*stream*
+	sudo docker run -d ${IMAGE_NAME} --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result"
+	for i in $(seq 1 ${REPEAT})
 	do
 		seq 1 ${STREAM_NUM} | \
-			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _parallel_{}
+			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _stream_{}
 	done
-elif [ ! -z ${INSTANCE_NUM} ]; the
-	for i in {0..3}
+	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker stop
+	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm
+
+elif [ ! -z ${INSTANCE_NUM} ]; then
+	sudo rm $HOME/net_result/throughput/*concurrency*
+	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i}
-		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+		sudo docker run -d ${IMAGE_NAME} --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result"
 	done
-	sleep 5
-	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -I {} sudo docker exec -d {} /root/net_script/do_throughput.sh runc _concurrency_{}
-	sleep 5
+	for i in $(seq 1 ${REPEAT})
+	do
+		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
+			xargs -I {} sudo docker exec -d {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{}
+	done
 	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker stop
+	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm
+
 else	
+	sudo docker run -d ${IMAGE_NAME} --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result"
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_
+	sudo docker stop ${CONTAINER_NAME}
+	sudo docker rm ${CONTAINER_NAME}
 fi
