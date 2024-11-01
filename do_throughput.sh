@@ -4,7 +4,7 @@
 # e.g., native, runc, kata, fc, vm
 
 # ${2}: experimental options. 
-# e.g., _stream_10, _concurrency5_runc_3, _cpu_2_, _mem_512_, _default_
+# e.g., _stream5_2, _concurrency5_runc_3, _cpu_2_, _mem_512_, _default_
 
 
 SERVER_IP="192.168.51.232"
@@ -14,9 +14,9 @@ REPEAT=3
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
-touch "${2}"
 case "${2}" in
 	_stream*|_concurrency*)
+		echo "${2}" > check
 		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
 		if [ ! -s "${RESULT_FILE}" ]; then
 			echo "${HEADER}" > ${RESULT_FILE}

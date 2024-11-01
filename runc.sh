@@ -44,8 +44,8 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		seq 1 ${STREAM_NUM} | \
 			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _stream${STREAM_NUM}_{}
 	done
-	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker stop
-	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm
+	sudo docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
+	sudo docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
 
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*concurrency*
