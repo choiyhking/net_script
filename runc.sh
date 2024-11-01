@@ -42,7 +42,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		seq 1 ${STREAM_NUM} | \
-			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _stream_{}
+			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _stream${STREAM_NUM}_{}
 	done
 	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker stop
 	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm

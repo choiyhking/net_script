@@ -14,7 +14,7 @@ REPEAT=3
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
-
+echo "${2}"
 case "${2}" in
 	_stream* | _concurrency*)
 		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
@@ -22,19 +22,19 @@ case "${2}" in
 			echo "${HEADER}" > ${RESULT_FILE}
 		fi
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${RESULT_FILE}
-		;;&
+		;;
 
 	_cpu*)
         rm ${RESULT_DIR}*${2}* 2>/dev/null
-		;;&
+		;&
 	
 	_mem*)
         rm ${RESULT_DIR}*${2}* 2>/dev/null
-		;;&
+		;&
 
 	_default*)
 		rm ${RESULT_DIR}*default* 2>/dev/null
-		;;&
+		;&
 
 	*)
 		for M_SIZE in 32 64 128 256 512 1024 2048 4096
