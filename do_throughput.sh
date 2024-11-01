@@ -12,11 +12,10 @@ RESULT_DIR="$HOME/net_result/${1}/throughput/"
 RESULT_FILE_PREFIX="res_throughput"
 REPEAT=3
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
-
+echo "${2}" > check
 mkdir -p ${RESULT_DIR} 2>/dev/null
 case "${2}" in
 	_stream*|_concurrency*)
-		echo "${2}" > check
 		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
 		if [ ! -s "${RESULT_FILE}" ]; then
 			echo "${HEADER}" > ${RESULT_FILE}
