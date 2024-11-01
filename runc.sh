@@ -4,7 +4,8 @@ CONTAINER_NAME="runc"
 IMAGE_NAME="net_ubuntu"
 REPEAT=3
 
-sudo docker build --no-cache -q -t ${IMAGE_NAME} .
+sudo docker rmi ${IMAGE_NAME}
+sudo docker build -t ${IMAGE_NAME} .
 
 
 while getopts ":c:m:s:n:" opt; do
