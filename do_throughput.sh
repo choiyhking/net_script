@@ -15,11 +15,9 @@ mkdir -p ${RESULT_DIR} 2>/dev/null
 
 case "${2}" in
 	_parallel*)
-        rm ${RESULT_DIR}*${2}* 2>/dev/null
-		NEW_RESULT_FILE=${RESULT_FILE}${2}
+		NEW_RESULT_FILE=${RESULT_FILE}${2}.txt
 		if [ ! -s "${NEW_RESULT_FILE}" ]; then
 			echo "${HEADER}" > ${NEW_RESULT_FILE}
-			mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
 		fi
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${NEW_RESULT_FILE}
 		;;
@@ -30,7 +28,7 @@ case "${2}" in
         rm ${RESULT_DIR}*${2}* 2>/dev/null
 		;;&
 	_default*)
-		rm ${RESULT_DIR}*${2}* 2>/dev/null
+		rm ${RESULT_DIR}*default* 2>/dev/null
 		;;&
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096

@@ -28,7 +28,8 @@ elif [ ! -z ${MEMORY} ]; then
 	sudo docker update --memory=${MEMORY} --memory-swap=${MEMORY} ${CONTAINER_NAME} 2>/dev/null
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_
 elif [ ! -z ${STREAM_NUM} ]; then
-	for i in {0..9}
+	sudo docker exec ${CONTAINER_NAME} rm /root/net_result/throughput/*parallel* 2>/dev/null
+	for i in {0..3}
 	do
 		seq 1 ${STREAM_NUM} | \
 			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _parallel_{}
