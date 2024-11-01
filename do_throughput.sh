@@ -14,7 +14,7 @@ REPEAT=3
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
-echo "${2}"
+touch "${2}"
 case "${2}" in
 	_stream* | _concurrency*)
 		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
