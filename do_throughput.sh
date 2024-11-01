@@ -19,6 +19,7 @@ case "${2}" in
 		NEW_RESULT_FILE=${RESULT_FILE}${2}
 		echo "${HEADER}" > ${NEW_RESULT_FILE}
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${NEW_RESULT_FILE}
+	        mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
 		;;
 	_cpu*)
         rm *${2}* 2>/dev/null
@@ -38,9 +39,7 @@ case "${2}" in
 			do
 				netperf -H ${SERVER_IP} -l 10 -- -m ${M_SIZE} | tail -n 1 >> ${NEW_RESULT_FILE}
 			done
+   			mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
 		done
 		;;
 esac
-
-mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
-
