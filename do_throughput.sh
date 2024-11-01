@@ -29,6 +29,7 @@ case "${1}" in
 		;;&
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096
+		RESULT_FILE=${RESULT_FILE}${M_SIZE}
 		do
 			for i in $(seq 1 ${REPEAT})
 			do
