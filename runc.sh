@@ -51,7 +51,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i}
-		sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
 	done
 
 	for i in $(seq 1 ${REPEAT})
