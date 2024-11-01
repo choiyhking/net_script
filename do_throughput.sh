@@ -33,10 +33,10 @@ case "${2}" in
 		for M_SIZE in 64 128 256 512 1024 2048 4096
 		do
 			NEW_RESULT_FILE=${RESULT_FILE}${2}${M_SIZE}
-		    echo "${HEADER}" > ${NEW_RESULT_FILE}
+		   	echo "${HEADER}" > ${NEW_RESULT_FILE}
 			for i in $(seq 1 ${REPEAT})
 			do
-				netperf -H ${SERVER_IP} -l 10 -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
+				netperf -H ${SERVER_IP} -l 10 -- -m ${M_SIZE} | tail -n 1 >> ${NEW_RESULT_FILE}
 			done
 		done
 		;;
