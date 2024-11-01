@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # ${1}: virtualization platform. e.g., native, runc, kata, fc, vm
 # ${2}: experimental options. e.g., _parallel_10, _cpu_2_, _mem_512_, _default_
 
-#!/bin/bash
 
 SERVER_IP="192.168.51.232"
 RESULT_DIR="$HOME/net_result/${1}/throughput/"
@@ -30,8 +31,8 @@ case "${2}" in
 		;;&
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096
-		RESULT_FILE=${RESULT_FILE}${M_SIZE}
 		do
+			RESULT_FILE=${RESULT_FILE}${M_SIZE}
 			for i in $(seq 1 ${REPEAT})
 			do
 				netperf -H ${SERVER_IP} -l 10 -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
