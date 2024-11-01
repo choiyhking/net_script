@@ -16,8 +16,7 @@ HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed 
 mkdir -p ${RESULT_DIR} 2>/dev/null
 
 case "${2}" in
-	_stream*)
-	_concurrency*)
+	_stream* | _concurrency*)
 		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
 		if [ ! -s "${RESULT_FILE}" ]; then
 			echo "${HEADER}" > ${RESULT_FILE}

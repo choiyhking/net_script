@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo docker build -q -t net_ubuntu .
+
 CONTAINER_NAME="runc"
 IMAGE_NAME="net_ubuntu"
 REPEAT=3
