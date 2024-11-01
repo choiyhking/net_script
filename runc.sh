@@ -20,16 +20,17 @@ done
 
 sudo docker start ${CONTAINER_NAME} 2>/dev/null
 
+SCRIPT_PATH=/root/net_script/
 
 if [ ! -z ${CPU} ]; then
 	sudo docker update --cpus=${CPU} ${CONTAINER_NAME} 2>/dev/null
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _cpu_${CPU}_
+	sudo docker exec ${CONTAINER_NAME} ${SCRIPT_PATH}do_throughput.sh runc _cpu_${CPU}_
 elif [ ! -z ${MEMORY} ]; then
 	sudo docker update --memory=${MEMORY} --memory-swap=${MEMORY} ${CONTAINER_NAME} 2>/dev/null
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _mem_${MEMORY}_
+	sudo docker exec ${CONTAINER_NAME} ${SCRIPT_PATH}do_throughput.sh runc _mem_${MEMORY}_
 elif [ ! -z ${STREAM_NUM} ]; then
 	seq 1 ${STREAM_NUM} | \
-		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _parallel_{}
+		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} ${SCRIPT_PATH}do_throughput.sh runc _parallel_{}
 else	
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _default_
+	sudo docker exec ${CONTAINER_NAME} ${SCRIPT_PATH}do_throughput.sh runc _default_
 fi
