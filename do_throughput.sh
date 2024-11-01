@@ -19,9 +19,9 @@ case "${2}" in
 		NEW_RESULT_FILE=${RESULT_FILE}${2}
 		if [ ! -s "${NEW_RESULT_FILE}" ]; then
 			echo "${HEADER}" > ${NEW_RESULT_FILE}
+			mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
 		fi
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${NEW_RESULT_FILE}
-	        mv ${NEW_RESULT_FILE} ${NEW_RESULT_FILE}.txt
 		;;
 	_cpu*)
         rm ${RESULT_DIR}*${2}* 2>/dev/null
