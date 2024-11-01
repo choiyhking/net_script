@@ -37,7 +37,7 @@ elif [ ! -z ${MEMORY} ]; then
 	sudo docker rm ${CONTAINER_NAME}
 
 elif [ ! -z ${STREAM_NUM} ]; then
-	sudo rm $HOME/net_result/throughput/*stream*
+	sudo rm $HOME/net_result/runc/throughput/*stream*
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -48,7 +48,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm
 
 elif [ ! -z ${INSTANCE_NUM} ]; then
-	sudo rm $HOME/net_result/throughput/*concurrency*
+	sudo rm $HOME/net_result/runc/throughput/*concurrency*
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i}
