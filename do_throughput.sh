@@ -21,6 +21,10 @@ case "${2}" in
 		fi
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${NEW_RESULT_FILE}
 		;;
+	_concurrency*)	
+		NEW_RESULT_FILE=${RESULT_FILE}${2}.txt
+		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${NEW_RESULT_FILE}
+		;;
 	_cpu*)
         rm ${RESULT_DIR}*${2}* 2>/dev/null
 		;;&
