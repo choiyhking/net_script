@@ -1,12 +1,7 @@
 #!/bin/bash
 
 CONTAINER_NAME="runc"
-RESULT_DIR="$HOME/net_result/runc/throughput"
-
-# 기본값 설정
-CPU=""
-MEMORY=""
-STREAM_NUM=""
+#RESULT_DIR="$HOME/net_result/runc/throughput"
 
 # 옵션 파싱
 # : 유효하지 않은 옵션이 주어졌을때 오류 메시지 출력
@@ -21,20 +16,20 @@ while getopts ":c:m:s:" opt; do
   esac
 done
 
-mkdir -p ${RESULT_DIR} 2>/dev/null
+#mkdir -p ${RESULT_DIR} 2>/dev/null
 
 sudo docker start ${CONTAINER_NAME} 2>/dev/null
 
 
 if [ ! -z ${CPU} ]; then
 	sudo docker update --cpus=${CPU} ${CONTAINER_NAME} 2>/dev/null
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _cpu_${CPU}_
+	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _cpu_${CPU}_
 elif [ ! -z ${MEMORY} ]; then
 	sudo docker update --memory=${MEMORY} --memory-swap=${MEMORY} ${CONTAINER_NAME} 2>/dev/null
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _mem_${MEMORY}_
+	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _mem_${MEMORY}_
 elif [ ! -z ${STREAM_NUM} ]; then
 	seq 1 ${STREAM_NUM} | \
-		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _parallel_{}
+		xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _parallel_{}
 else	
-	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh _default_
+	sudo docker exec ${CONTAINER_NAME} /net_script/do_throughput.sh runc _default_
 fi

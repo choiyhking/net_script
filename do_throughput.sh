@@ -1,19 +1,20 @@
+# ${1}: virtualization platform. e.g., native, runc, kata, fc, vm
+# ${2}: experimental options. e.g., _parallel_10, _cpu_2_, _mem_512_, _default_
+
 #!/bin/bash
 
 SERVER_IP="192.168.51.232"
-RESULT_DIR="$HOME/net_result/throughput/"
+RESULT_DIR="$HOME/net_result/${1}/throughput/"
 RESULT_FILE_PREFIX="res_throughput"
+RESULT_FILE="${RESULT_DIR}${RESULT_FILE_PREFIX}${2}"
 REPEAT=3
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
-#rm ${RESULT_DIR}${RESULT_FILE_PREFIX}* 2>/dev/null
 
-
-RESULT_FILE="${RESULT_DIR}${RESULT_FILE_PREFIX}${1}"
 echo "Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)" \
 	> ${RESULT_FILE}
 
-case "${1}" in
+case "${2}" in
 	_parallel*)
         rm *parallel* 2>/dev/null
 		netperf -H ${SERVER_IP} -l 10 | tail -n 1 >> ${RESULT_FILE}
