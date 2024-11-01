@@ -32,7 +32,7 @@ case "${2}" in
 	*)
 		for M_SIZE in 64 128 256 512 1024 2048 4096
 		do
-			RESULT_FILE=${RESULT_FILE}${M_SIZE}
+			mv ${RESULT_FILE} ${RESULT_FILE}${M_SIZE}
 			for i in $(seq 1 ${REPEAT})
 			do
 				netperf -H ${SERVER_IP} -l 10 -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
