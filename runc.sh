@@ -7,7 +7,7 @@ M_SIZES=(32 64 128 256 512 1024)
 RESULT_DIR="$HOME/net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 
-#mkdir -p ${RESULT_DIR}
+mkdir -p ${RESULT_DIR}
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
@@ -46,6 +46,7 @@ if [ ! -z ${CPU} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
+ 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
@@ -61,6 +62,7 @@ elif [ ! -z ${MEMORY} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
+ 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
@@ -73,7 +75,8 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		--memory=2G \
 		--memory-swap=2G \
 		${IMAGE_NAME} > /dev/null 2>&1
-    
+
+     	RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -96,6 +99,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	for i in $(seq 1 ${REPEAT})
 	do
+ 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NAME}
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh ${RESULT_FILE}_{}
@@ -112,7 +116,8 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
+ 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
+	    	RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
 		sudo sh -c "pidstat -p $(pgrep netperf) 1 > ${RESULT_FILE}_CPU" &
 		PIDSTAT_PID=$!
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
