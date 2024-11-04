@@ -46,7 +46,7 @@ if [ ! -z ${CPU} ]; then
 	
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* > /dev/null 2>&1
-	echo ${MEMORY}
+	
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--memory=${MEMORY} \
