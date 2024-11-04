@@ -6,7 +6,8 @@ REPEAT=10
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
-sudo docker build -t ${IMAGE_NAME} .
+#sudo docker build -t ${IMAGE_NAME} .
+sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 
 # options

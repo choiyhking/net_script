@@ -8,6 +8,9 @@ RUN apt update && \
 # Set working directory
 WORKDIR /root
 
+# Define a build argument to clone the newest repo with no cache !!
+ARG CACHE_BUST=1
+
 # Clone the repository
 RUN git clone https://github.com/choiyhking/net_script.git
 
