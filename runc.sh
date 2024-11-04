@@ -117,8 +117,7 @@ else
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    	RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
-      		echo "$(pgrep [n]etperf)"
-		sudo sh -c "sleep 5; pidstat -p $(pgrep [n]etperf) 1 10 > ${RESULT_FILE}_CPU" &
+		sudo sh -c "sleep 5; echo "$(pgrep [n]etperf)"; pidstat -p $(pgrep [n]etperf) 1 10 > ${RESULT_FILE}_CPU" &
 		PIDSTAT_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
