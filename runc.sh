@@ -53,7 +53,7 @@ elif [ ! -z ${MEMORY} ]; then
 		--memory-swap=${MEMORY} \
 		${IMAGE_NAME} > /dev/null 2>&1
     
-	for M_SIZES in ${M_SIZES[@]}
+	for M_SIZE in ${M_SIZES[@]}
 	do
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_ ${REPEAT} ${M_SIZE}
 	done
