@@ -42,7 +42,11 @@ elif [ ! -z ${MEMORY} ]; then
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*stream* 2>/dev/null
 	
-	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+		--cpus=2 \
+		--memory=1G \
+		--memory-swap=1G \
+		${IMAGE_NAME}
 	
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -56,7 +60,11 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i}
-		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+		--cpus=1 \
+		--memory=512m \
+		--memory-swap=512m \
+		${IMAGE_NAME}
 	done
 
 	for i in $(seq 1 ${REPEAT})
