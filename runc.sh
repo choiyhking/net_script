@@ -98,7 +98,7 @@ fi
 
 sleep 40
 echo "Stop and Remove containers..."
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop 2>/dev/null
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm 2>/dev/null
 
 echo "Experiments Finished !!"
