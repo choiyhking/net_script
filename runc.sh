@@ -46,7 +46,7 @@ if [ ! -z ${CPU} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
-		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}.txt
+		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
 	
@@ -61,7 +61,7 @@ elif [ ! -z ${MEMORY} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
-		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}.txt
+		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
 
@@ -112,8 +112,8 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}.txt
-		sudo sh -c "pidstat -p $(pgrep netperf) 1 > ${RESULT_FILE}_CPU.txt" &
+	    RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
+		sudo sh -c "pidstat -p $(pgrep netperf) 1 > ${RESULT_FILE}_CPU" &
 		PIDSTAT_PID=$!
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
 		kill ${PIDSTAT_PID}
