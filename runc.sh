@@ -4,6 +4,11 @@ CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
 M_SIZES=(32 64 128 256 512 1024)
 
+RESULT_DIR="$HOME/net_result/runc/throughput/"
+RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+
+mkdir -p ${RESULT_DIR}
+
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
 sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} . 
@@ -28,24 +33,25 @@ if [ -z "$REPEAT" ]; then
   exit 1
 fi
 
-# ./do_throughput.sh <virt platform> <exp options> <repeat #> <message size>
+# ./do_throughput.sh <result file name> <repeat #>
 
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*cpu_${CPU}* > /dev/null 2>&1
+	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--cpus=${CPU} \
 		${IMAGE_NAME} > /dev/null 2>&1
-  
+    
 	for M_SIZE in ${M_SIZES[@]}
 	do
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_ ${REPEAT} ${M_SIZE}
+		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}.txt
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
 	
 elif [ ! -z ${MEMORY} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* > /dev/null 2>&1
+	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 	
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
@@ -55,26 +61,28 @@ elif [ ! -z ${MEMORY} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_ ${REPEAT} ${M_SIZE}
+		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}.txt
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
 	done
 
 elif [ ! -z ${STREAM_NUM} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*stream* > /dev/null 2>&1
+	sudo rm ${RESULT_DIR}/*stream* > /dev/null 2>&1
 	
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=4 \
 		--memory=2G \
 		--memory-swap=2G \
 		${IMAGE_NAME} > /dev/null 2>&1
-	
+    
+	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	for i in $(seq 1 ${REPEAT})
 	do
 		seq 1 ${STREAM_NUM} | \
-			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _stream${STREAM_NUM}_{}
+			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}_{}
 	done
 
 elif [ ! -z ${INSTANCE_NUM} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*concurrency* > /dev/null 2>&1
+	sudo rm ${RESULT_DIR}*concurrency* > /dev/null 2>&1
 	
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
@@ -88,12 +96,13 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	for i in $(seq 1 ${REPEAT})
 	do
+		RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NAME}
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
-			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{}
+			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh ${RESULT_FILE}_{}
 	done
 	
 else	
-	sudo rm $HOME/net_result/runc/throughput/*default* > /dev/null 2>&1
+	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=1 \
@@ -103,7 +112,11 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_ ${REPEAT} ${M_SIZE}
+	    RESULT_FILE=${RESULT_FILE_PREFIX}_defaul_${CPU}_${M_SIZE}.txt
+		sudo sh -c "pidstat -p $(pgrep netperf) 1 > ${RESULT_FILE}_CPU.txt" &
+		PIDSTAT_PID=$!
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
+		kill ${PIDSTAT_PID}
 	done
 fi
 
