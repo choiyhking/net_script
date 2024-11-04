@@ -27,7 +27,7 @@ TIME=20
 
 mkdir -p ${RESULT_DIR}
 
-if [[ "${EXP}" == _stream* || "${EXP}" == _concurrency* ]]; then
+if [[ "${EXP}" == "_stream*" || "${EXP}" == "_concurrency*" ]]; then
 	RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${EXP}.txt
 	if [ ! -s "${RESULT_FILE}" ]; then # if empty
 		echo "${HEADER}" > ${RESULT_FILE}
