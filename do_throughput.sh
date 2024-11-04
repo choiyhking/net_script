@@ -25,7 +25,7 @@ HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed 
 TIME=20
 
 
-mkdir -p ${RESULT_DIR} > /dev/null 2>&1
+mkdir -p ${RESULT_DIR}
 
 if [[ "${EXP}" == _stream* || "${EXP}" == _concurrency* ]]; then
 	RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${EXP}.txt
