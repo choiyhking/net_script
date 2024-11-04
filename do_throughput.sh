@@ -19,6 +19,9 @@ TIME=20
 SERVER_IP="192.168.51.232"
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
 
+RESULT_DIR="$HOME/net_result/runc/throughput/"
+mkdir -p ${RESULT_DIR}
+
 
 if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
 	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
