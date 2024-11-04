@@ -31,6 +31,8 @@ fi
 
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
+	sudo rm $HOME/net_result/runc/throughput/*cpu_${CPU}* 2>/dev/null
+
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--cpus=${CPU} \
@@ -38,6 +40,8 @@ if [ ! -z ${CPU} ]; then
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_ ${REPEAT}
 	
 elif [ ! -z ${MEMORY} ]; then
+	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* 2>/dev/null
+
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--memory=${MEMORY} \
@@ -81,6 +85,8 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	
 else	
 	# default CPU, Memory(w/ no swap)
+	sudo rm $HOME/net_result/runc/throughput/*defaul* 2>/dev/null
+
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=1 \
 		--memory=512m \

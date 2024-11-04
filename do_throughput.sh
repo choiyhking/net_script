@@ -18,38 +18,22 @@ HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed 
 
 mkdir -p ${RESULT_DIR} 2>/dev/null
 
-case "${2}" in
-	_stream*|_concurrency*)
-		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
-		if [ ! -s "${RESULT_FILE}" ]; then # if empty
-			echo "${HEADER}" > ${RESULT_FILE}
-		fi
-		netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}
-		;; # exit
+if [[ "${2}" == _stream* || "${2}" == _concurrency* ]]; then
+	RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}.txt
+	if [ ! -s "${RESULT_FILE}" ]; then # if empty
+		echo "${HEADER}" > ${RESULT_FILE}
+	fi
+	netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}
+		
+else
+	for M_SIZE in 32 64 128 256 512 1024 2048 4096
+	do
+		RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}${M_SIZE}.txt
+		echo "${HEADER}" > ${RESULT_FILE}
 
-	_cpu*)
-        rm ${RESULT_DIR}*${2}* 2>/dev/null
-		;& # check next case
-	
-	_mem*)
-        rm ${RESULT_DIR}*${2}* 2>/dev/null
-		;&
-
-	_default*)
- 		touch ${RESULT_DIR}/check
-		rm ${RESULT_DIR}*default* 2>/dev/null
-		;&
-
-	*)
-		for M_SIZE in 32 64 128 256 512 1024 2048 4096
+		for i in $(seq 1 ${REPEAT})
 		do
-			RESULT_FILE=${RESULT_DIR}${RESULT_FILE_PREFIX}${2}${M_SIZE}.txt
-		   	echo "${HEADER}" > ${RESULT_FILE}
-
-			for i in $(seq 1 ${REPEAT})
-			do
-				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
-			done
+			netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
 		done
-		;;
-esac
+	done
+fi
