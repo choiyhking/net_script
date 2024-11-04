@@ -7,7 +7,7 @@ M_SIZES=(32 64 128 256 512 1024)
 RESULT_DIR="$HOME/net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 
-mkdir -p ${RESULT_DIR}
+#mkdir -p ${RESULT_DIR}
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
