@@ -36,6 +36,7 @@ case "${2}" in
 		;&
 
 	_default*)
+ 		touch ${RESULT_DIR}/check
 		rm ${RESULT_DIR}*default* 2>/dev/null
 		;&
 
