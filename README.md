@@ -36,6 +36,8 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 ### Runc
 **`runc.sh`** options
 
+`-r`: netperf 실험의 반복 횟수. e.g., 10회
+
 `-c`: 컨테이너의 CPU 개수 업데이트. e.g., 라즈베리파이의 경우 1(default)~4.
 
 `-m`: 컨테이너의 memory size 업데이트: e.g., 512m(default), 1G.
