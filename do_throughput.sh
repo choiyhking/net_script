@@ -4,7 +4,7 @@
 # e.g., native, runc, kata, fc, vm
 
 # ${2}: experimental options. 
-# e.g., _stream5_2, _concurrency5_runc_3, _cpu_2_, _mem_512_, _default_
+# e.g., _stream5_2, _concurrency5_<container ID>_3, _cpu_2_, _mem_512_, _default_
 
 # ${3}: repeat number.
 # e.g., 3, 10.
