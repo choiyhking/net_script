@@ -116,7 +116,6 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
- 		
 	    	RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
 		sudo sh -c "pidstat -p $(pgrep netperf) 1 > ${RESULT_FILE}_CPU" &
 		PIDSTAT_PID=$!
