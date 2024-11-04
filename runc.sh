@@ -49,9 +49,9 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*stream* 2>/dev/null
 	
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
-		--cpus=2 \
-		--memory=1G \
-		--memory-swap=1G \
+		--cpus=4 \
+		--memory=2G \
+		--memory-swap=2G \
 		${IMAGE_NAME}
 	
 	for i in $(seq 1 ${REPEAT})
