@@ -80,7 +80,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
-			xargs -I {} -P${INSTANCE_NUM} sudo docker exec -d {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{} 
+			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{} 
 	done
 	
 else	
