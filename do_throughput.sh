@@ -25,6 +25,7 @@ if [[ "${2}" == _stream* || "${2}" == _concurrency* ]]; then
 	fi
 	#netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}
  	netperf -H ${SERVER_IP} -l ${TIME} >> ${RESULT_FILE}
+  	echo "hi" >> ${RESULT_FILE}
 		
 else
 	for M_SIZE in 32 64 128 256 512 1024 2048 4096
