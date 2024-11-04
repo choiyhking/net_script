@@ -65,10 +65,11 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	done
 	
 else	
+	# default CPU, Memory(w/ no swap)
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
-		--cpus=1 \ # default
-		--memory=512m \ # default
-		--memory-swap=512m \ # default(no swap)
+		--cpus=1 \
+		--memory=512m \
+		--memory-swap=512m \
 		${IMAGE_NAME}
 
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_
