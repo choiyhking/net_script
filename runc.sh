@@ -11,7 +11,7 @@ sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 # options
 # ":" means that there must be values
-while getopts ":t:c:m:s:n:" opt; do
+while getopts ":r:c:m:s:n:" opt; do
   case $opt in
     r) REPEAT=${OPTARG} ;; 
     c) CPU=${OPTARG} ;;
