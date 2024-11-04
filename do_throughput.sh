@@ -6,11 +6,13 @@
 # ${2}: experimental options. 
 # e.g., _stream5_2, _concurrency5_runc_3, _cpu_2_, _mem_512_, _default_
 
+# ${3}: repeat number.
+# e.g., 3, 10.
 
 SERVER_IP="192.168.51.232"
 RESULT_DIR="$HOME/net_result/${1}/throughput/"
 RESULT_FILE_PREFIX="res_throughput"
-REPEAT=10
+REPEAT=${3}
 TIME=20
 HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
 
