@@ -1,14 +1,16 @@
 #!/bin/bash
 
-CONTAINER_NAME="runc"
-IMAGE_NAME="net_ubuntu"
-REPEAT=3
+CONTAINER_NAME="net_runc"
+IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
+REPEAT=10
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
 sudo docker build -t ${IMAGE_NAME} .
 
 
+# options
+# ":" means that there must be values
 while getopts ":c:m:s:n:" opt; do
   case $opt in
     c) CPU=${OPTARG} ;;
@@ -20,7 +22,7 @@ while getopts ":c:m:s:n:" opt; do
   esac
 done
 
-echo "Run container and Start experiment..."
+echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
@@ -38,7 +40,9 @@ elif [ ! -z ${MEMORY} ]; then
 
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*stream* 2>/dev/null
+	
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+	
 	for i in $(seq 1 ${REPEAT})
 	do
 		seq 1 ${STREAM_NUM} | \
@@ -59,14 +63,19 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec -d {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{}
 	done
-	#sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker stop
-	#sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | xargs -r sudo docker rm
 	
 else	
-	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" ${IMAGE_NAME}
+	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+		--cpus=1 \ # default
+		--memory=512m \ # default
+		--memory-swap=512m \ # default(no swap)
+		${IMAGE_NAME}
+
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_
 fi
 
-echo "Stop and Remove container..."
+echo "Stop and Remove containers..."
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
+
+echo "Experiments Finished !!"
