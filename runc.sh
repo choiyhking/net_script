@@ -2,15 +2,14 @@
 
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
+M_SIZES=(32 64 128 256 512 1024)
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
-#sudo docker build -t ${IMAGE_NAME} .
-sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
+sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} . 
 
 
 # options
-# ":" means that there must be values
 while getopts ":r:c:m:s:n:" opt; do
   case $opt in
     r) REPEAT=${OPTARG} ;; 
@@ -23,11 +22,13 @@ while getopts ":r:c:m:s:n:" opt; do
   esac
 done
 
-# REPEAT option must be specified.
+# REPEAT option must be specified
 if [ -z "$REPEAT" ]; then
   echo "Error: -r (repeat) option is required." >&2
   exit 1
 fi
+
+# ./do_throughput.sh <virt platform> <exp options> <repeat #> <message size>
 
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
@@ -38,7 +39,10 @@ if [ ! -z ${CPU} ]; then
 		--cpus=${CPU} \
 		${IMAGE_NAME} > /dev/null 2>&1
   
-	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_ ${REPEAT}
+	for M_SIZE in ${M_SIZES[@]}
+	do
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_ ${REPEAT} ${M_SIZE}
+	done
 	
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* > /dev/null 2>&1
@@ -48,8 +52,11 @@ elif [ ! -z ${MEMORY} ]; then
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
 		${IMAGE_NAME} > /dev/null 2>&1
-  
-	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_ ${REPEAT}
+    
+	for M_SIZES in ${M_SIZES[@]}
+	do
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_ ${REPEAT} ${M_SIZE}
+	done
 
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm $HOME/net_result/runc/throughput/*stream* > /dev/null 2>&1
@@ -82,24 +89,26 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
-			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{} 
+			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh runc _concurrency${INSTANCE_NUM}_{}
 	done
 	
 else	
-	# default CPU, Memory(w/ no swap)
-	sudo rm $HOME/net_result/runc/throughput/*defaul* > /dev/null 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*default* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
 		${IMAGE_NAME} > /dev/null 2>&1
-
-	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_ ${REPEAT}
+	
+	for M_SIZE in ${M_SIZES[@]}
+	do
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_ ${REPEAT} ${M_SIZE}
+	done
 fi
 
 echo "Stop and Remove containers..."
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
 
-echo "Experiments Finished !!"
+echo "Experiments are completed !!"
