@@ -31,34 +31,34 @@ fi
 
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*cpu_${CPU}* > /dev/nulll 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*cpu_${CPU}* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--cpus=${CPU} \
-		${IMAGE_NAME} > /dev/nulll 2>&1
+		${IMAGE_NAME} > /dev/null 2>&1
   
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _cpu_${CPU}_ ${REPEAT}
 	
 elif [ ! -z ${MEMORY} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* > /dev/nulll 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*mem_${MEMORY}* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		-v "$HOME/net_result:/root/net_result" \
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
-		${IMAGE_NAME} > /dev/nulll 2>&1
+		${IMAGE_NAME} > /dev/null 2>&1
   
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _mem_${MEMORY}_ ${REPEAT}
 
 elif [ ! -z ${STREAM_NUM} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*stream* > /dev/nulll 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*stream* > /dev/null 2>&1
 	
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=4 \
 		--memory=2G \
 		--memory-swap=2G \
-		${IMAGE_NAME} > /dev/nulll 2>&1
+		${IMAGE_NAME} > /dev/null 2>&1
 	
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -67,7 +67,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	done
 
 elif [ ! -z ${INSTANCE_NUM} ]; then
-	sudo rm $HOME/net_result/runc/throughput/*concurrency* > /dev/nulll 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*concurrency* > /dev/null 2>&1
 	
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
@@ -76,7 +76,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
-		${IMAGE_NAME} > /dev/nulll 2>&1
+		${IMAGE_NAME} > /dev/null 2>&1
 	done
 
 	for i in $(seq 1 ${REPEAT})
@@ -87,19 +87,19 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	
 else	
 	# default CPU, Memory(w/ no swap)
-	sudo rm $HOME/net_result/runc/throughput/*defaul* > /dev/nulll 2>&1
+	sudo rm $HOME/net_result/runc/throughput/*defaul* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
-		${IMAGE_NAME} > /dev/nulll 2>&1
+		${IMAGE_NAME} > /dev/null 2>&1
 
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_ ${REPEAT}
 fi
 
 echo "Stop and Remove containers..."
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/nulll 2>&1
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/nulll 2>&1
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
 
 echo "Experiments Finished !!"
