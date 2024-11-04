@@ -96,7 +96,7 @@ else
 	sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh runc _default_ ${REPEAT}
 fi
 
-slepp 40
+sleep 40
 echo "Stop and Remove containers..."
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
