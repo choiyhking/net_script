@@ -12,8 +12,9 @@ sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 # options
 # ":" means that there must be values
-while getopts ":c:m:s:n:" opt; do
+while getopts ":t:c:m:s:n:" opt; do
   case $opt in
+    t) TIME=${OPTARG} ;; 
     c) CPU=${OPTARG} ;;
     m) MEMORY=${OPTARG} ;;
 	s) STREAM_NUM=${OPTARG} ;;
@@ -22,6 +23,12 @@ while getopts ":c:m:s:n:" opt; do
     :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
   esac
 done
+
+# TIME option must be specified.
+if [ -z "$TIME" ]; then
+  echo "Error: -t (time) option is required." >&2
+  exit 1
+fi
 
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
