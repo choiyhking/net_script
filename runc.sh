@@ -49,7 +49,7 @@ do_netperf() {
 	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
 
 	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
-        	sudo sh -c "echo ${HEADER} > ${RESULT_FILE}"
+        	sudo echo ${HEADER} > ${RESULT_FILE}
 	 	echo "header success !!"
     	fi	
   
@@ -57,7 +57,8 @@ do_netperf() {
     		sudo sh -c "docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}"
 
 	else
-        	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | sudo tail -n 1 >> ${RESULT_FILE}
+        	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE}
+	 	# | sudo tail -n 1 >> ${RESULT_FILE}
 	fi
 
  	echo "netperf success !!"
