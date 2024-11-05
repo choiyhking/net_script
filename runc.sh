@@ -7,6 +7,7 @@ M_SIZES=(32 64 128 256 512 1024)
 
 RESULT_DIR="net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result"
 
 terminate_process() {
     local PARENT_PID=${1}
@@ -66,7 +67,7 @@ if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
-		-v "$HOME/net_result:/root/net_result" \
+		-v "${MOUNT_PATH}" \
 		--cpus=${CPU} \
 		${IMAGE_NAME} > /dev/null 2>&1
     
@@ -80,7 +81,7 @@ elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 	
 	sudo docker run -d --name ${CONTAINER_NAME} \
-		-v "$HOME/net_result:/root/net_result" \
+		-v "${MOUNT_PATH}" \
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
 		${IMAGE_NAME} > /dev/null 2>&1
@@ -94,7 +95,7 @@ elif [ ! -z ${MEMORY} ]; then
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream* > /dev/null 2>&1
 	
-	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+	sudo docker run -d --name ${CONTAINER_NAME} -v "${MOUNT_PATH}" \
 		--cpus=4 \
 		--memory=2G \
 		--memory-swap=2G \
@@ -113,7 +114,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i}
-		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+		sudo docker run -d --name ${NEW_CONTAINER_NAME} -v "${MOUNT_PATH}" \
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
@@ -130,7 +131,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
-	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_script/net_result:/root/net_script/net_result" \
+	sudo docker run -d --name ${CONTAINER_NAME} -v "${MOUNT_PATH}" \
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
