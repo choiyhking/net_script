@@ -17,6 +17,9 @@ terminate_process() {
     else
         echo "No process found. (Already terminated)"
     fi
+    
+    echo "Sleeping..."
+    sleep 5
 }
 
 result_parsing() {
@@ -25,9 +28,6 @@ result_parsing() {
 	sudo sh -c "tail -n +3 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
 		> temp && mv temp ${RESULT_FILE}"
-  
-    	echo "Sleeping..."
-    	sleep 5
 }
 
 
