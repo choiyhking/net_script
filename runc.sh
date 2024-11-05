@@ -133,7 +133,7 @@ else
   		PARENT_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		sudo tail -n +2 ${RESULT_FILE} | awk '{print $1, $5, $6, $7, $8, $9, $10, $11}' > ${RESULT_FILE}
+  		sudo sh -c "tail ${RESULT_FILE} | awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' > ${RESULT_FILE}"
   		terminate_process "${PARENT_PID}"
 	done
 fi
