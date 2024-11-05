@@ -32,9 +32,7 @@ else
 	
 	for i in $(seq 1 ${REPEAT})
 	do
-		#netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
-  		raw_result=$(netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE})
-    		tail -n +2 ${raw_result} | awk '{print $1, $5, $6, $7, $8, $9, $10, $11}' >> ${RESULT_FILE}
+		netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
 	done
 
 fi
