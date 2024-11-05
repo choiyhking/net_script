@@ -80,7 +80,7 @@ if [ ! -z ${CPU} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
-  		do_pidstat()
+  		do_pidstat
 		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		result_parsing "${RESULT_FILE}_pidstat"
 		terminate_process "${PARENT_PID}"
@@ -98,7 +98,7 @@ elif [ ! -z ${MEMORY} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-  		do_pidstat()
+  		do_pidstat
 		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		result_parsing "${RESULT_FILE}_pidstat"
 		terminate_process "${PARENT_PID}"
@@ -153,7 +153,7 @@ else
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
 		
-		do_pidstat()
+		do_pidstat
 		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		result_parsing "${RESULT_FILE}_pidstat"
     		terminate_process "${PARENT_PID}"
