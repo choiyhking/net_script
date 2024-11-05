@@ -128,12 +128,12 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    	HOST_RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
-		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${HOST_RESULT_FILE}_cpu 2> /dev/null" &
+	    	RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
+		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_cpu 2> /dev/null" &
   		PARENT_PID=$!
-  		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		sudo sh -c "tail -n +3 ${HOST_RESULT_FILE_cpu} | awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' > ${HOST_RESULT_FILE_cpu}"
+  		CONT_RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
+		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${CONT_RESULT_FILE} ${REPEAT}
+  		sudo sh -c "tail -n +3 ${RESULT_FILE}_cpu | awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' > ${RESULT_FILE}_cpu"
   		terminate_process "${PARENT_PID}"
 	done
 fi
