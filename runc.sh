@@ -14,7 +14,8 @@ PARENT_PID=""
 
 do_pidstat() {
 	sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 >> ${RESULT_FILE}_pidstat 2> /dev/null" &
-	PARENT_PID=$!	
+	PARENT_PID=$!
+ 	echo "pidstat success !!"
 }
 
 terminate_process() {
@@ -57,6 +58,8 @@ do_netperf() {
 	else
         	sudo sh -c "sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 	fi
+
+ 	echo "netperf success !!"
 }
 
 
