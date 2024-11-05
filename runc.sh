@@ -121,7 +121,8 @@ else
   		SHELL_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
-		kill $(pgrep [p]idstat) ${SHELL_PID}
+		sudo kill $(pgrep [p]idstat) ${SHELL_PID}
+  		echo "sleeping..."
   		sleep 5
 	done
 fi
