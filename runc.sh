@@ -25,7 +25,7 @@ terminate_process() {
         echo "No process found. (Already terminated)"
     fi
     
-    echo "Sleeping..."
+    echo "One experiment finished. Sleeping for a moment..."
     sleep 5
 }
 
