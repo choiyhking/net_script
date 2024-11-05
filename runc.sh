@@ -17,9 +17,6 @@ terminate_process() {
     else
         echo "No process found. (Already terminated)"
     fi
-
-    echo "Sleeping..."
-    sleep 5
 }
 
 result_parsing() {
@@ -28,6 +25,9 @@ result_parsing() {
 	sudo sh -c "tail -n +3 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
 		> temp && mv temp ${RESULT_FILE}"
+  
+    	echo "Sleeping..."
+    	sleep 5
 }
 
 
@@ -140,11 +140,11 @@ else
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
 		
-		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_cpu 2> /dev/null" &
+		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
   		PARENT_PID=$!
 		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		terminate_process "${PARENT_PID}"
-		result_parsing "${RESULT_FILE}"
+  		result_parsing "${RESULT_FILE}_pidstat"
+    		terminate_process "${PARENT_PID}"
 	done
 fi
 
