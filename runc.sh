@@ -11,7 +11,7 @@ MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result"
 PARENT_PID=""
 
 do_pidstat() {
-	sudo sh -c "sleep 1; pidstat -p \\$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
+	sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
 	PARENT_PID=$!	
 }
 
