@@ -38,7 +38,7 @@ result_parsing() {
 	echo ${HEADER} > temp
  	sudo sed -i "/^${HEADER}/c\\" "${RESULT_FILE}"
 	sudo tail -n +4 ${RESULT_FILE} \
-		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
+		| awk '{print $1, $5, $6, $7, $8, $9, $10, $11}' \
 		>> temp && mv temp ${RESULT_FILE}
 }
 
