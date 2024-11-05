@@ -130,7 +130,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
-	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_result:/root/net_result" \
+	sudo docker run -d --name ${CONTAINER_NAME} -v "$HOME/net_script/net_result:/root/net_script/net_result" \
 		--cpus=1 \
 		--memory=512m \
 		--memory-swap=512m \
