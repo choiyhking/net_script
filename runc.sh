@@ -7,6 +7,18 @@ M_SIZES=(32 64 128 256 512 1024)
 RESULT_DIR="$HOME/net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 
+terminate_process() {
+    local PARENT_PID=$1
+    if ps -p "${PARENT_PID}" > /dev/null; then
+        kill "${PARENT_PID}"
+        echo "Process ${PARENT_PID} terminated."
+    else
+        echo "No process found. (Already terminated)"
+    fi
+    echo "sleeping..."
+    sleep 5
+}
+
 mkdir -p ${RESULT_DIR}
 
 echo "Building a new image..."
@@ -121,12 +133,7 @@ else
   		PARENT_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		if ps -p "${PARENT_PID}" > /dev/null; then
-    			kill ${PARENT_PID}
-		else
-    			echo "No netperf processes found."
-		fi
-  		echo "sleeping..."
+  		terminate_process "${PARENT_PID}"
   		sleep 5
 	done
 fi
