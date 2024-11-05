@@ -27,17 +27,18 @@ terminate_process() {
         echo "No process found. (Already terminated)"
     fi
     
-    echo "One experiment finished. Sleeping for a moment..."
-    sleep 5
+    sleep 3
 }
 
 result_parsing() {
 	local RESULT_FILE=${1}
  	local HEADER="%usr %system %guest %wait %CPU CPU Command"
-	echo ${HEADER} > ${RESULT_FILE}
+	
+	echo ${HEADER} > temp
+ 	sed -i "/^${HEADER}/c\\" "${INPUT_FILE}"
 	sudo sh -c "tail -n +4 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
-		> temp && mv temp ${RESULT_FILE}"
+		>> temp && mv temp ${RESULT_FILE}"
 }
 
 do_netperf() {
@@ -45,23 +46,16 @@ do_netperf() {
 	local HEADER="Recv Socket Size(B) Send Socket Size(B) Send Message Size(B) Elapsed Time(s) Throughput(10^6bps)"
 	local EXP=$(echo "${RESULT_FILE}" | awk -F'_' '{print $3}') # e.g., mem
 	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
- 	
-  	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
-    		if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
-        		echo "${HEADER}" > ${RESULT_FILE}
-    		fi	
 
-    		netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE} # with default message size
+	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
+        	echo "${HEADER}" > ${RESULT_FILE}
+    	fi	
+  
+  	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
+    		sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE} # with default message size
 
 	else
-    		echo "${HEADER}" > ${RESULT_FILE}
-
-    		for i in $(seq 1 ${REPEAT})
-    		do
-      			do_pidstat
-        		netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
-			terminate_process "${PARENT_PID}"
-    		done
+        	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
 	fi
 }
 
@@ -182,6 +176,7 @@ else
 	    	RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
       		for i in $(seq 1 ${REPEAT})
 		do
+  			do_pidstat
      			do_netperf "${RESULT_FILE}"
   			result_parsing "${RESULT_FILE}_pidstat"
     		done 
