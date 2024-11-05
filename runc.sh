@@ -6,7 +6,7 @@ IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
 M_SIZES=(32 64 128 256 512 1024)
 
 RESULT_DIR="net_result/runc/throughput/"
-RESULT_FILE_PREFIX="res_throughput"
+RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 
 terminate_process() {
     local PARENT_PID=${1}
