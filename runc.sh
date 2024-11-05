@@ -57,7 +57,7 @@ do_netperf() {
     		sudo sh -c "docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}"
 
 	else
-        	sudo sh -c "docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+        	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | sudo tail -n 1 >> ${RESULT_FILE}
 	fi
 
  	echo "netperf success !!"
