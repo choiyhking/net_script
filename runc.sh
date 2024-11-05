@@ -8,6 +8,12 @@ M_SIZES=(32 64 128 256 512 1024)
 RESULT_DIR="net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result"
+PARENT_PID=""
+
+do_pidstat() {
+	sudo sh -c "sleep 1; pidstat -p \\$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
+	PARENT_PID=$!	
+}
 
 terminate_process() {
     local PARENT_PID=${1}
@@ -74,7 +80,10 @@ if [ ! -z ${CPU} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
-		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE}
+  		do_pidstat()
+		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
+  		result_parsing "${RESULT_FILE}_pidstat"
+		terminate_process "${PARENT_PID}"
 	done
 	
 elif [ ! -z ${MEMORY} ]; then
@@ -89,7 +98,10 @@ elif [ ! -z ${MEMORY} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE}
+  		do_pidstat()
+		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
+  		result_parsing "${RESULT_FILE}_pidstat"
+		terminate_process "${PARENT_PID}"
 	done
 
 elif [ ! -z ${STREAM_NUM} ]; then
@@ -141,8 +153,7 @@ else
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
 		
-		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
-  		PARENT_PID=$!
+		do_pidstat()
 		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		result_parsing "${RESULT_FILE}_pidstat"
     		terminate_process "${PARENT_PID}"
