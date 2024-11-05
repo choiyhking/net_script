@@ -50,6 +50,7 @@ do_netperf() {
 
 	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
         	sudo sh -c "echo ${HEADER} > ${RESULT_FILE}"
+	 	echo "header success !!"
     	fi	
   
   	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
