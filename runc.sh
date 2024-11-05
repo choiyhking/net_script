@@ -1,25 +1,37 @@
 #!/bin/bash
 
+
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
 M_SIZES=(32 64 128 256 512 1024)
 
-RESULT_DIR="$HOME/net_result/runc/throughput/"
+RESULT_DIR="~/net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 
 terminate_process() {
-    local PARENT_PID=$1
+    local PARENT_PID=${1}
+
     if ps -p "${PARENT_PID}" > /dev/null; then
         kill "${PARENT_PID}"
         echo "Process ${PARENT_PID} terminated."
     else
         echo "No process found. (Already terminated)"
     fi
-    echo "sleeping..."
+
+    echo "Sleeping..."
     sleep 5
 }
 
-mkdir -p ${RESULT_DIR}
+result_parsing() {
+	local RESULT_FILE=${1}
+
+	sudo sh -c "tail -n +3 ${RESULT_FILE} \
+		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
+		> temp && mv temp ${RESULT_FILE}"
+}
+
+
+mkdir -p ${RESULT_DIR} > /dev/null 2>&1
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
@@ -45,6 +57,8 @@ if [ -z "$REPEAT" ]; then
   exit 1
 fi
 
+
+
 # ./do_throughput.sh <result file name> <repeat #>
 
 echo "Run container and Start experiments..."
@@ -58,9 +72,8 @@ if [ ! -z ${CPU} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
- 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
+		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE}
 	done
 	
 elif [ ! -z ${MEMORY} ]; then
@@ -74,9 +87,8 @@ elif [ ! -z ${MEMORY} ]; then
     
 	for M_SIZE in ${M_SIZES[@]}
 	do
- 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}
+		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE}
 	done
 
 elif [ ! -z ${STREAM_NUM} ]; then
@@ -88,12 +100,11 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		--memory-swap=2G \
 		${IMAGE_NAME} > /dev/null 2>&1
 
-     	RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	for i in $(seq 1 ${REPEAT})
 	do
 		seq 1 ${STREAM_NUM} | \
-			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE}_{}
+			xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE}_{}
 	done
 
 elif [ ! -z ${INSTANCE_NUM} ]; then
@@ -111,10 +122,9 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	for i in $(seq 1 ${REPEAT})
 	do
- 		RESULT_FILE_PREFIX="${RESULT_FILE_PREFIX/$HOME/\/root}"
 		RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NAME}
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
-			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} /root/net_script/do_throughput.sh ${RESULT_FILE}_{}
+			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} ./do_throughput.sh ${RESULT_FILE}_{}
 	done
 	
 else	
@@ -128,14 +138,13 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    	RESULT_FILE=${RESULT_FILE_PREFIX}_default_${M_SIZE}
+	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
+		
 		sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_cpu 2> /dev/null" &
   		PARENT_PID=$!
-  		CONT_RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
-		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${CONT_RESULT_FILE} ${REPEAT}
-  		echo ${RESULT_FILE} 
-		sudo sh -c "tail -n +3 ${RESULT_FILE}_cpu | awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' > temp && mv temp ${RESULT_FILE}_cpu"
+		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		terminate_process "${PARENT_PID}"
+		result_parsing "${RESULT_FILE}"
 	done
 fi
 

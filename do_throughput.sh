@@ -1,12 +1,12 @@
 #!/bin/bash
 
 
-# ${1}: result file name
-# <....res>_<throughput>_<experimental option name>_<experimental option argument>_<message size>.txt
-# e.g., $HOME/net_result/runc/throughput/res_throughput_mem_1G_256.txt
+# ${1}: result file
+# <...path.../res>_<throughput>_<experimental option name>_<experimental option argument>_<message size>.txt
+# e.g., /root/net_result/runc/throughput/res_throughput_mem_1G_256.txt
 RESULT_FILE=${1}
-EXP=$(echo "${RESULT_FILE}" | awk -F'_' '{print $3}')
-M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//')
+EXP=$(echo "${RESULT_FILE}" | awk -F'_' '{print $3}') # e.g., mem
+M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
 
 
 # ${2}: repeat number
