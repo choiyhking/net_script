@@ -4,6 +4,8 @@
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
 M_SIZES=(32 64 128 256 512 1024)
+SERVER_IP="192.168.51.232"
+TIME=20 # test time (sec)
 
 RESULT_DIR="net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
@@ -11,7 +13,7 @@ MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result"
 PARENT_PID=""
 
 do_pidstat() {
-	sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 > ${RESULT_FILE}_pidstat 2> /dev/null" &
+	sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 >> ${RESULT_FILE}_pidstat 2> /dev/null" &
 	PARENT_PID=$!	
 }
 
@@ -31,10 +33,36 @@ terminate_process() {
 
 result_parsing() {
 	local RESULT_FILE=${1}
-	echo "%usr %system %guest %wait %CPU CPU Command" > ${RESULT_FILE}
+ 	local HEADER="%usr %system %guest %wait %CPU CPU Command"
+	echo ${HEADER} > ${RESULT_FILE}
 	sudo sh -c "tail -n +4 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
 		> temp && mv temp ${RESULT_FILE}"
+}
+
+do_netperf() {
+	local RESULT_FILE=${1}
+	local HEADER="Recv Socket Size(B) Send Socket Size(B) Send Message Size(B) Elapsed Time(s) Throughput(10^6bps)"
+	local EXP=$(echo "${RESULT_FILE}" | awk -F'_' '{print $3}') # e.g., mem
+	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
+ 	
+  	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
+    		if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
+        		echo "${HEADER}" > ${RESULT_FILE}
+    		fi	
+
+    		netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE} # with default message size
+
+	else
+    		echo "${HEADER}" > ${RESULT_FILE}
+
+    		for i in $(seq 1 ${REPEAT})
+    		do
+      			do_pidstat
+        		netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
+			terminate_process "${PARENT_PID}"
+    		done
+	fi
 }
 
 
@@ -151,12 +179,12 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
-		
-		do_pidstat
-		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		result_parsing "${RESULT_FILE}_pidstat"
-    		terminate_process "${PARENT_PID}"
+	    	RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
+      		for i in $(seq 1 ${REPEAT})
+		do
+     			do_netperf "${RESULT_FILE}"
+  			result_parsing "${RESULT_FILE}_pidstat"
+    		done 
 	done
 fi
 
