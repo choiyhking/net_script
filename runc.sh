@@ -121,6 +121,7 @@ else
 		PIDSTAT_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
+  		echo ${PIDSTAT_PID}
 		kill ${PIDSTAT_PID}
   		echo "killed ${PIDSTAT_PID}"
   		sleep 5
