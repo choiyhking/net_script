@@ -31,8 +31,8 @@ terminate_process() {
 
 result_parsing() {
 	local RESULT_FILE=${1}
-
-	sudo sh -c "tail -n +3 ${RESULT_FILE} \
+	echo "%usr %system %guest %wait %CPU CPU Command" > ${RESULT_FILE}
+	sudo sh -c "tail -n +4 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
 		> temp && mv temp ${RESULT_FILE}"
 }
