@@ -123,7 +123,8 @@ else
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
   		echo "finished!"
     		echo "kill pidstat"
-		sudo kill "$(pgrep [p]idstat)" 
+      		echo "$(pgrep [p]idstat)"
+		sudo kill $(pgrep [p]idstat)
   		echo "kill shell"
   		sudo kill "${SHELL_PID}"
   		echo "sleeping..."
