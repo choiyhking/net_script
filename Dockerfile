@@ -20,8 +20,5 @@ WORKDIR /root/net_script
 # Make all .sh files executable
 RUN chmod +x *.sh
 
-# Set working directory
-WORKDIR /root
-
 # Default command
 CMD ["sleep", "infinity"]
