@@ -36,10 +36,10 @@ result_parsing() {
  	local HEADER="%usr %system %guest %wait %CPU CPU Command"
 	
 	echo ${HEADER} > temp
- 	sed -i "/^${HEADER}/c\\" "${INPUT_FILE}"
-	sudo sh -c "tail -n +4 ${RESULT_FILE} \
+ 	sudo sed -i "/^${HEADER}/c\\" "${RESULT_FILE}"
+	sudo tail -n +4 ${RESULT_FILE} \
 		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
-		>> temp && mv temp ${RESULT_FILE}"
+		>> temp && mv temp ${RESULT_FILE}
 }
 
 do_netperf() {
@@ -49,8 +49,8 @@ do_netperf() {
 	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
 
 	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
-        	#sudo echo ${HEADER} > ${RESULT_FILE}
-		echo "${HEADER}" | sudo tee "${RESULT_FILE}"
+        	#sudo echo ${HEADER} > ${RESULT_FILE} 
+		echo "${HEADER}" | sudo tee "${RESULT_FILE}" > /dev/null
 	 	echo "header success !!"
     	fi	
   
@@ -59,7 +59,7 @@ do_netperf() {
 
 	else
         	#sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | sudo tail -n 1 >> ${RESULT_FILE}
-	 	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 | sudo tee -a ${RESULT_FILE}
+	 	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 | sudo tee -a ${RESULT_FILE} > /dev/null
 
 	fi
 
