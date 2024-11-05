@@ -121,7 +121,7 @@ else
   		PARENT_PID=$!
   		RESULT_FILE="${RESULT_FILE/$HOME/\/root}"
 		sudo docker exec ${CONTAINER_NAME} /root/net_script/do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		if [ -n "${PARENT_PID}" ]; then
+  		if ps -p "${PARENT_PID}" > /dev/null; then
     			kill ${PARENT_PID}
 		else
     			echo "No netperf processes found."
