@@ -31,7 +31,7 @@ result_parsing() {
 }
 
 
-mkdir -p ${RESULT_DIR} > /dev/null 2>&1
+sudo mkdir -p ${RESULT_DIR} > /dev/null 2>&1
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME}
