@@ -48,14 +48,14 @@ do_netperf() {
 	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
 
 	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
-        	echo "${HEADER}" > ${RESULT_FILE}
+        	sudo sh -c "echo ${HEADER} > ${RESULT_FILE}"
     	fi	
   
   	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
-    		sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE} # with default message size
+    		sudo sh -c "sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}"
 
 	else
-        	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}
+        	sudo sh -c "sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 	fi
 }
 
