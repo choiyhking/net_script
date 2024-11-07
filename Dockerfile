@@ -8,7 +8,7 @@ RUN apt update && \
 # Set working directory
 WORKDIR /root
 
-# Define a build argument to clone the newest repo with no cache !!
+# Define a build argument to clone the newest repo with no cache
 ARG CACHE_BUST=1
 
 # Clone the repository

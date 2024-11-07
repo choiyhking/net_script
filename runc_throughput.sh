@@ -4,23 +4,22 @@
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu" # Ubuntu 22.04 with pre-installed netperf
 M_SIZES=(32 64 128 256 512 1024)
-SERVER_IP="192.168.51.232"
-TIME=20 # test time (sec)
 
 RESULT_DIR="net_result/runc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result"
 PARENT_PID=""
+SERVER_IP="192.168.51.232"
+HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
+# test time (sec)
+TIME=20
 
 do_pidstat() {
-	sudo sh -c "sleep 1; pidstat -p \$(pgrep [n]etperf) 1 >> ${RESULT_FILE}_pidstat 2> /dev/null" &
-	PARENT_PID=$!
- 	echo "pidstat success !!"
+	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
+	PARENT_PID=$!	
 }
 
 terminate_process() {
-    local PARENT_PID=${1}
-
     if ps -p "${PARENT_PID}" > /dev/null; then
         kill "${PARENT_PID}"
         echo "Process ${PARENT_PID} terminated."
@@ -28,43 +27,16 @@ terminate_process() {
         echo "No process found. (Already terminated)"
     fi
     
-    sleep 3
+    echo "One experiment finished. Sleeping for a moment..."
+    sleep 5
 }
 
 result_parsing() {
 	local RESULT_FILE=${1}
- 	local HEADER="%usr %system %guest %wait %CPU CPU Command"
-	
-	echo "${HEADER}" > "${RESULT_FILE}"
- 	sudo sed -i "/^${HEADER}/c\\" "${RESULT_FILE}"
-	#sudo tail -n +4 ${RESULT_FILE} \
-	#	| awk '{print $1, $5, $6, $7, $8, $9, $10, $11}' \
-	#	>> temp && mv temp ${RESULT_FILE}
- 	sudo awk 'NR > 3 {print $1, $5, $6, $7, $8, $9, $10, $11}' ${RESULT_FILE} | sudo tee ${RESULT_FILE} > /dev/null
-}
-
-do_netperf() {
-	local RESULT_FILE=${1}
-	local HEADER="Recv Socket Size(B) Send Socket Size(B) Send Message Size(B) Elapsed Time(s) Throughput(10^6bps)"
-	local EXP=$(echo "${RESULT_FILE}" | awk -F'_' '{print $3}') # e.g., mem
-	local M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.g., 256
-
-	if [ ! -s "${RESULT_FILE}" ]; then # if it's first time
-        	#sudo echo ${HEADER} > ${RESULT_FILE} 
-		echo "${HEADER}" | sudo tee "${RESULT_FILE}" > /dev/null
-	 	echo "header success !!"
-    	fi	
-  
-  	if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
-    		sudo sh -c "docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}"
-
-	else
-        	#sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | sudo tail -n 1 >> ${RESULT_FILE}
-	 	sudo docker exec ${CONTAINER_NAME} netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 | sudo tee -a ${RESULT_FILE} > /dev/null
-
-	fi
-
- 	echo "netperf success !!"
+	echo "%usr %system %guest %wait %CPU CPU Command" > ${RESULT_FILE}
+	sudo sh -c "tail -n +4 ${RESULT_FILE} \
+		| awk '{print \$1, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' \
+		> temp && mv temp ${RESULT_FILE}"
 }
 
 
@@ -96,8 +68,6 @@ fi
 
 
 
-# ./do_throughput.sh <result file name> <repeat #>
-
 echo "Run container and Start experiments..."
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -110,10 +80,16 @@ if [ ! -z ${CPU} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
-  		do_pidstat
-		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		result_parsing "${RESULT_FILE}_pidstat"
-		terminate_process "${PARENT_PID}"
+		echo "${HEADER}" | sudo tee ${RESULT_FILE} > /dev/null
+		for i in $(seq 1 ${REPEAT})
+		do
+			echo "Repeat #${i}..."
+			do_pidstat
+			sudo docker exec ${CONTAINER_NAME} \
+                sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+			sleep 3
+		done
+		echo "One experiment finished."
 	done
 	
 elif [ ! -z ${MEMORY} ]; then
@@ -128,10 +104,16 @@ elif [ ! -z ${MEMORY} ]; then
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-  		do_pidstat
-		sudo docker exec ${CONTAINER_NAME} ./do_throughput.sh ${RESULT_FILE} ${REPEAT}
-  		result_parsing "${RESULT_FILE}_pidstat"
-		terminate_process "${PARENT_PID}"
+		echo "${HEADER}" | sudo tee ${RESULT_FILE} > /dev/null
+		for i in $(seq 1 ${REPEAT})
+        do
+			echo "Repeat #${i}..."
+			do_pidstat
+			sudo docker exec ${CONTAINER_NAME} \
+                sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+            sleep 3
+		done
+		echo "One experiment finished."
 	done
 
 elif [ ! -z ${STREAM_NUM} ]; then
@@ -172,7 +154,6 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
-
 	sudo docker run -d --name ${CONTAINER_NAME} -v "${MOUNT_PATH}" \
 		--cpus=1 \
 		--memory=512m \
@@ -181,13 +162,21 @@ else
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
-	    	RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
-      		for i in $(seq 1 ${REPEAT})
+	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
+		echo "${HEADER}" | sudo tee ${RESULT_FILE} > /dev/null
+		for i in $(seq 1 ${REPEAT})
 		do
-  			do_pidstat
-     			do_netperf "${RESULT_FILE}"
-    		done 
-      		#result_parsing "${RESULT_FILE}_pidstat"
+			echo "Repeat #${i}..."
+			do_pidstat
+			# this doesn't work
+			#docker exec -it my_container "echo a && echo b"
+			sudo docker exec ${CONTAINER_NAME} \
+				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+			#terminate_process 
+			sleep 3
+		done
+		echo "One experiment finished."
+		#result_parsing "${RESULT_FILE}_pidstat"
 	done
 fi
 

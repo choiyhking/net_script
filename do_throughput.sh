@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-# ${1}: result file
+# ${1}: result file name
 # <...path.../res>_<throughput>_<experimental option name>_<experimental option argument>_<message size>.txt
 # e.g., /root/net_result/runc/throughput/res_throughput_mem_1G_256.txt
 RESULT_FILE=${1}
@@ -13,11 +13,12 @@ M_SIZE=$(echo "${RESULT_FILE}" | awk -F'_' '{print $NF}' | sed 's/\.txt//') # e.
 # e.g., 3, 10
 REPEAT=${2}
 
+
 # test time (sec)
 TIME=20
 
 SERVER_IP="192.168.51.232"
-HEADER="Recv Socket Size(B)  Send Socket Size(B)  Send Message Size(B)  Elapsed Time(s)  Throughput(10^6bps)"
+HEADER="Recv Socket Size(B) Send Socket Size(B) Send Message Size(B) Elapsed Time(s) Throughput(10^6bps)"
 
 
 if [[ "${EXP}" == stream* || "${EXP}" == concurrency* ]]; then
