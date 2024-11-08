@@ -4,8 +4,8 @@
 REPEAT=10
 
 echo "****BACKUP AND REMOVE EXISTING RESULTS****"
-sudo rm -rf net_result.bak
-sudo cp -r net_result net_result.bak 2> /dev/null
+sudo rm -rf net_result.backup
+sudo cp -r net_result net_result.backup 2> /dev/null
 sudo rm -rf net_result
 
 echo "****START <DEFAULT> EXPERIMENT****"

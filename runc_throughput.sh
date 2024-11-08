@@ -76,7 +76,7 @@ if [ ! -z ${CPU} ]; then
 		-v ${MOUNT_PATH} \
 		--cpus=${CPU} \
 		${IMAGE_NAME} > /dev/null 2>&1
-	echo "Container is running."
+	echo "Container[runc] is running."
 
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -104,7 +104,7 @@ elif [ ! -z ${MEMORY} ]; then
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
 		${IMAGE_NAME} > /dev/null 2>&1
-	echo "Container is running"
+	echo "Container[runc] is running"
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -133,7 +133,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		--memory=2G \
 		--memory-swap=2G \
 		${IMAGE_NAME} > /dev/null 2>&1
-	echo "Container is running."
+	echo "Container[runc] is running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	
@@ -164,7 +164,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 			--memory-swap=512m \
 			${IMAGE_NAME} > /dev/null 2>&1
 	done
-	echo "Containers are running."
+	echo "Containers[runc] are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
 
@@ -191,7 +191,7 @@ else
 		--memory=512m \
 		--memory-swap=512m \
 		${IMAGE_NAME} > /dev/null 2>&1
-	echo "Container is running."
+	echo "Container[runc] is running."
 
 	for M_SIZE in ${M_SIZES[@]}
 	do
