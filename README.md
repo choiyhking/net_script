@@ -34,9 +34,9 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 
 ## Script
 ### Runc
-**`runc.sh`** options
+**`runc_throughput.sh`**
 
-`-r`: netperf 실험의 반복 횟수. e.g., 10회
+`-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
 `-c`: 컨테이너의 CPU 개수 업데이트. e.g., 라즈베리파이의 경우 1(default)~4.
 
@@ -45,8 +45,6 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 `-s`: 한 컨테이너 안에서 동시에 실행되는 netperf stream의 개수. e.g., 1(default), 10.
 
 `-n`: 한 host에서 동시에 실행되는 컨테이너의 개수: e.g., 1(default), 5, 10.
-
-r option은 필수.
 
 한 번에 하나의 옵션만 사용 가능. 아무것도 명시하지 않으면 default.
 
