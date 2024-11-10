@@ -26,14 +26,30 @@ do_pidstat() {
 }
 
 update_resource_config() {
-	# ${1}: CPU
-	# ${2}: Memory (MiB)
-	sudo sed -i "s/^default_vcpus = [0-9]\+/default_vcpus = ${1}/" "${KATA_CONFIG_PATH}"
-	sudo sed -i "s/^default_memory = [0-9]\+/default_memory = ${2}/" "${KATA_CONFIG_PATH}"
+	local CPU=${1}
+	local MEMORY=$(convert_to_mb ${2})
+
+	sudo sed -i "s/^default_vcpus = [0-9]\+/default_vcpus = ${CPU}/" "${KATA_CONFIG_PATH}"
+	sudo sed -i "s/^default_memory = [0-9]\+/default_memory = ${MEMORY}/" "${KATA_CONFIG_PATH}"
 
 	sudo systemctl restart containerd.service > /dev/null
 	
 	echo "Resource configuration updated."
+}
+
+convert_to_mb() {
+    local input=${1}
+    local result
+
+    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
+        result=$(( ${BASH_REMATCH[1]} * 1024 ))
+    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
+        result=${BASH_REMATCH[1]}
+    else
+        result=${input}
+    fi
+
+    echo "${result}"
 }
 
 #result_parsing() {
@@ -52,8 +68,8 @@ echo "Remove existing containers..."
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
 
 echo "Building a new image..."
-sudo docker rmi ${IMAGE_NAME}
-sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} . 
+sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
+sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 
 # Get options
@@ -86,11 +102,11 @@ echo "Start experiments..."
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
-	update_resource_config ${CPU} 2048
+	update_resource_config "${CPU}" "2G"
 
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
-		${IMAGE_NAME} > /dev/null 2>&1
+		${IMAGE_NAME}
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
@@ -106,7 +122,7 @@ if [ ! -z ${CPU} ]; then
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
-			kill $(pgrep [p]idstat)
+			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 		done
 
@@ -117,17 +133,19 @@ if [ ! -z ${CPU} ]; then
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 	
-	updaet_resource_config 4 ${MEMORY}
+	update_resource_config "4" "${MEMORY}"
 
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
-		${IMAGE_NAME} > /dev/null 2>&1
+		${IMAGE_NAME}
 	echo "Container[kata] is running"
+	
+	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-		sudo docker exec sh -c "echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null"
+		sudo docker exec ${CONTAINER_NAME} sh -c "echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null"
 		
 		for i in $(seq 1 ${REPEAT})
         do
@@ -135,7 +153,7 @@ elif [ ! -z ${MEMORY} ]; then
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
-			kill $(pgrep [p]idstat)
+			kill $(pgrep [p]idstat) > /dev/null
             sleep 3
 		done
 
@@ -146,25 +164,25 @@ elif [ ! -z ${MEMORY} ]; then
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
-	update_resource_config 4 2048
+	update_resource_config "4" "2G"
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
-		${IMAGE_NAME} > /dev/null 2>&1
+		${IMAGE_NAME}
 	echo "Container[kata] is running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
+	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 	
-	for i in $(seq 1 ${REPEAT})
+	for i in $(seq 1 ${REPEAT} )
 	do
 		echo "Repeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
-			xargs -I{} -P${STREAM_NUM} sh -c "
-				if [ ! -s ${RESULT_FILE}_{} ]; then
-					echo '${HEADER}' | tee ${RESULT_FILE}_{} > /dev/null
+		    xargs -I{} -P${STREAM_NUM} sudo docker exec "${CONTAINER_NAME}" sh -c '
+				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
+					echo "'"${HEADER}"'" | tee '"${RESULT_FILE}"'_{} > /dev/null
 				fi
-				sudo docker exec ${CONTAINER_NAME} sh -c 'netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}_{}'
-            "		
+			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
 		sleep 3
 	done
 
@@ -172,14 +190,15 @@ elif [ ! -z ${STREAM_NUM} ]; then
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
-	update_resource_config 1 512
+	update_resource_config "1" "512m"
 	
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i} # e.g., net_runc_2
-		sudo docker run -d --name ${NEW_CONTAINER_NAME} \
+		sudo docker run -d -q --name ${NEW_CONTAINER_NAME} \
 			--runtime=io.containerd.kata.v2 \
-			${IMAGE_NAME} > /dev/null 2>&1
+			${IMAGE_NAME}
+		sudo docker exec ${NEW_CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 	done
 	echo "Containers[kata] are running."
 
@@ -188,13 +207,12 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo "Repeat ${i}..."
-		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
-			xargs -I {} -P${INSTANCE_NUM} sh -c "
-				if [ ! -s ${RESULT_FILE}_{} ]; then
-					echo '${HEADER}' | sudo ${RESULT_FILE}_{} > /dev/null
+		sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
+			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} sh -c '
+				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
+					echo "'"${HEADER}"'" | tee '"${RESULT_FILE}"'_{} > /dev/null
 				fi
-				sudo docker exec {} sh -c 'netperf -H ${SERVER_IP} -l ${TIME} | tail -n 1 >> ${RESULT_FILE}_{}'
-			"
+			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
 		sleep 3
 	done
 
@@ -203,11 +221,11 @@ else
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
 	# (CPU, Memory)
-	update_resource_config 1 512
+	update_resource_config "1" "512m"
 		
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
-		${IMAGE_NAME} > /dev/null 2>&1
+		${IMAGE_NAME}
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null 
@@ -225,7 +243,7 @@ else
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
-			kill $(pgrep [p]idstat)
+			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 
 		done
@@ -235,9 +253,10 @@ else
 fi
 
 # Copy result files from Kata Container to host. 
-sudo docker cp ${CONTAINER_NAME}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
+sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
+	xargs -I {} sudo docker cp {}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
 
-echo "Stop and Remove containers..."
+#echo "Stop and Remove containers..."
 # xargs -r: if there is no argument, do not run commands
 #sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
 #sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1

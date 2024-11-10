@@ -16,15 +16,12 @@ HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Tim
 # Functions
 do_pidstat() {
 	local RESULT_FILE=${1}
-	# Sleep to give netperf time to start. 
+	# Sleep to give netperf time to start 
 	# Actually, it doesn't monitor whole CPU overhead of container. Only "netperf process" in the contianer.
 	# Permission denied -> sudo tee 
-	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) & # background execution
+	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) & 
+	# Background execution
 }
-
-#result_parsing() {
-#	To-Do
-#}
 
 
 ###############
@@ -35,11 +32,11 @@ sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 echo "Remove existing containers..."
 # -f: force
 # -q: quiet
-sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
+sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null 
 
 echo "Building a new image..."
-sudo docker rmi ${IMAGE_NAME}
-sudo docker build --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} . 
+sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
+sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 
 # Get options
@@ -68,14 +65,17 @@ fi
 # Start Experiments #
 #####################
 echo "Start experiments..."
-# Modify <CPU> option.
+# Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	# Set memory size with half of physical memory
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
 		--cpus=${CPU} \
-		${IMAGE_NAME} > /dev/null 2>&1
+		--memory=4G \
+		--memory-swap=4G \
+		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
 	for M_SIZE in ${M_SIZES[@]}
@@ -95,15 +95,15 @@ if [ ! -z ${CPU} ]; then
 		echo "Message size[${M_SIZE}B] finished."
 	done
 
-# Modify <Memory> option.
+# Modify <Memory> option
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 	
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
-		${IMAGE_NAME} > /dev/null 2>&1
+		${IMAGE_NAME}
 	echo "Container[runc] is running"
 	
 	for M_SIZE in ${M_SIZES[@]}
@@ -123,16 +123,16 @@ elif [ ! -z ${MEMORY} ]; then
 		echo "Message size[${M_SIZE}B] finished."
 	done
 
-# Modify <STREAM_NUM> option.
+# Modify <STREAM_NUM> option
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
 		--cpus=4 \
-		--memory=2G \
-		--memory-swap=2G \
-		${IMAGE_NAME} > /dev/null 2>&1
+		--memory=4G \
+		--memory-swap=4G \
+		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
@@ -150,19 +150,19 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		sleep 3
 	done
 
-# Modify <INSTANCE_NUM> option.
+# Modify <INSTANCE_NUM> option
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 	
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
 		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i} # e.g., net_runc_2
-		sudo docker run -d --name ${NEW_CONTAINER_NAME} \
+		sudo docker run -d -q --name ${NEW_CONTAINER_NAME} \
 			-v ${MOUNT_PATH} \
 			--cpus=1 \
 			--memory=512m \
 			--memory-swap=512m \
-			${IMAGE_NAME} > /dev/null 2>&1
+			${IMAGE_NAME}
 	done
 	echo "Containers[runc] are running."
 
@@ -181,16 +181,16 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 		sleep 3
 	done
 
-# <DEFAULT> option.
+# <DEFAULT> option
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
-	sudo docker run -d --name ${CONTAINER_NAME} \
+	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
-		--cpus=1 \
-		--memory=512m \
-		--memory-swap=512m \
-		${IMAGE_NAME} > /dev/null 2>&1
+		--cpus=2 \
+		--memory=4G \
+		--memory-swap=4G \
+		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
 	for M_SIZE in ${M_SIZES[@]}
@@ -202,14 +202,12 @@ else
 		do
 			echo "Repeat #${i}..."
 			do_pidstat ${RESULT_FILE}
-			# this doesn't work
-			# docker exec -it my_container "echo a && echo b"
+			# this doesn't work: docker exec -it my_container "echo a && echo b"
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 			sleep 3
 		done
 		echo "Message size[${M_SIZE}B] finished."
-		#result_parsing "${RESULT_FILE}_pidstat"
 	done
 fi
 
