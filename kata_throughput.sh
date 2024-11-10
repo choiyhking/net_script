@@ -4,25 +4,21 @@
 CONTAINER_NAME="net_kata"
 IMAGE_NAME="net_ubuntu"
 SERVER_IP="192.168.51.232"
-#M_SIZES=(32 64 128 256 512 1024) # array
-M_SIZES=(32 64) # array
+M_SIZES=(32 64 128 256 512 1024) # array
 TIME="20" # netperf test time (sec)
 
-CONT_WORKING_DIR="/root/net_script/"
 
 RESULT_DIR="net_result/kata/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+CONT_WORKING_DIR="/root/net_script/"
 KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
-MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result" # host_path : container_path
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
+
 
 # Functions
 do_pidstat() {
 	local RESULT_FILE=${1}
-	# Sleep to give netperf time to start. 
-	# Actually, it doesn't monitor whole CPU overhead of container. Only "netperf process" in the contianer.
-	# Permission denied -> sudo tee 
-	(pidstat -p $(pgrep [q]emu) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
+	(sleep 1; pidstat -p $(pgrep [q]emu) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
 
 update_resource_config() {
@@ -41,8 +37,10 @@ convert_to_mb() {
     local input=${1}
     local result
 
+	# e.g., 1G -> 1024
     if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
         result=$(( ${BASH_REMATCH[1]} * 1024 ))
+	# e.g., 512m -> 512
     elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
         result=${BASH_REMATCH[1]}
     else
@@ -51,10 +49,6 @@ convert_to_mb() {
 
     echo "${result}"
 }
-
-#result_parsing() {
-#	To-Do
-#}
 
 
 ###############
@@ -98,11 +92,11 @@ fi
 # Start Experiments #
 #####################
 echo "Start experiments..."
-# Modify <CPU> option.
+# Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
-	update_resource_config "${CPU}" "2G"
+	update_resource_config "${CPU}" "4G"
 
 	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
@@ -122,6 +116,7 @@ if [ ! -z ${CPU} ]; then
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+
 			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 		done
@@ -129,7 +124,7 @@ if [ ! -z ${CPU} ]; then
 		echo "Message size[${M_SIZE}B] finished."
 	done
 
-# Modify <Memory> option.
+# Modify <Memory> option
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 	
@@ -153,6 +148,7 @@ elif [ ! -z ${MEMORY} ]; then
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+
 			kill $(pgrep [p]idstat) > /dev/null
             sleep 3
 		done
@@ -160,11 +156,11 @@ elif [ ! -z ${MEMORY} ]; then
 		echo "Message size[${M_SIZE}B] finished."
 	done
 
-# Modify <STREAM_NUM> option.
+# Modify <STREAM_NUM> option
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
-	update_resource_config "4" "2G"
+	update_resource_config "4" "4G"
 
 	sudo docker run -d --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
@@ -178,15 +174,15 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	do
 		echo "Repeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
-		    xargs -I{} -P${STREAM_NUM} sudo docker exec "${CONTAINER_NAME}" sh -c '
+		    xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} sh -c '
 				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
-					echo "'"${HEADER}"'" | tee '"${RESULT_FILE}"'_{} > /dev/null
+					echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
 				fi
 			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
 		sleep 3
 	done
 
-# Modify <INSTANCE_NUM> option.
+# Modify <INSTANCE_NUM> option
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
@@ -207,16 +203,16 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo "Repeat ${i}..."
-		sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
+		sudo docker ps -q --filter name=${CONTAINER_NAME} | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} sh -c '
 				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
-					echo "'"${HEADER}"'" | tee '"${RESULT_FILE}"'_{} > /dev/null
+					echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
 				fi
 			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
 		sleep 3
 	done
 
-# <DEFAULT> option.
+# <DEFAULT> option
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
@@ -238,27 +234,25 @@ else
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo "Repeat #${i}..."
-			# this doesn't work
-			# docker exec -it my_container "echo a && echo b"
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+
 			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
-
 		done
+
 		echo "Message size[${M_SIZE}B] finished."
-		#result_parsing "${RESULT_FILE}_pidstat"
 	done
 fi
 
-# Copy result files from Kata Container to host. 
+# Copy all result files from Kata Container to host
 sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
 	xargs -I {} sudo docker cp {}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
 
-#echo "Stop and Remove containers..."
+echo "Stop and Remove containers..."
 # xargs -r: if there is no argument, do not run commands
-#sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
-#sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
+sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
 
 echo "All experiments are completed !!"

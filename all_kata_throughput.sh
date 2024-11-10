@@ -1,9 +1,11 @@
 #!/bin/bash
 
 
-REPEAT=3
+REPEAT=10
 
-#echo "****BACKUP AND REMOVE EXISTING RESULTS****"
+#echo "********************************************"`
+#echo "**** BACKUP AND REMOVE EXISTING RESULTS ****"
+#echo "********************************************"`
 #sudo rm -rf net_result.backup
 #sudo cp -r net_result net_result.backup 2> /dev/null
 #sudo rm -rf net_result
@@ -18,7 +20,7 @@ echo "********************************"
 echo "**** START <CPU> EXPERIMENT ****"
 echo "********************************"
 # CPU 
-for arg in 1 2 4
+for arg in 1 2 3 4
 do
 	./kata_throughput.sh -r "${REPEAT}" -c "${arg}"
 done
@@ -27,17 +29,16 @@ echo "***********************************"
 echo "**** START <MEMORY> EXPERIMENT ****"
 echo "***********************************"
 # Memory
-for arg in "512m" "1G" "2G" "3G"
+for arg in 512m 1G 2G 4G 6G
 do
 	./kata_throughput.sh -r "${REPEAT}" -m "${arg}"
 done
-
 
 echo "***********************************"
 echo "**** START <STREAM> EXPERIMENT ****"
 echo "***********************************"
 # Stream
-for arg in 1 5 10
+for arg in 1 3 5 10
 do
 	./kata_throughput.sh -r "${REPEAT}" -s "${arg}"
 done

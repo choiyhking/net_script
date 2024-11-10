@@ -47,7 +47,6 @@ done
 echo "****************************************"
 echo "**** START <CONCURRENCY> EXPERIMENT ****"
 echo "****************************************"
-
 # Concurrency
 for arg in 1 4 8
 do
