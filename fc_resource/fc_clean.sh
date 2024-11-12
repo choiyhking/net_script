@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# change to current script's directory
+cd "$(dirname "$0")"
+
 
 killall firecracker 2> /dev/null
 

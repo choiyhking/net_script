@@ -2,32 +2,33 @@
 
 
 SERVER_IP="192.168.51.232"
-M_SIZES=(32 64 128 256 512 1024) # array
+#M_SIZES=(32 64 128 256 512 1024) # array
+M_SIZES=(32 64) # array
 TIME="20" # netperf test time (sec)
-
+PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
+SSH_OPTIONS="-i ${PRIVATE_KEY} root@"
 
 RESULT_DIR="net_result/fc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
 FC_WORKING_DIR="/root/net_script/"
-FC_CONFIG_FILE="fc_config.json"
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
 
 # Functions
 do_pidstat() {
 	local RESULT_FILE=${1}
-	(sleep 1; pidstat -p $(pgrep [q]emu) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
+	(sleep 1; pidstat -p $(pgrep [f]irecracker) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
 
-update_resource_config() {
-	local CPU=${1}
-	local MEMORY=$(convert_to_mb ${2})
-
-	sudo sed -i 's/"vcpu_count": [0-9]\+/"vcpu_count": '"${CPU}"'/' "${FC_CONFIG_FILE}"
-	sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '"${MEMORY}"'/' "${FC_CONFIG_FILE}"
-	
-	echo "Resource configuration updated."
-}
+#update_resource_config() {
+#	local CPU=${1}
+#	local MEMORY=$(convert_to_mb ${2})
+#
+#	sudo sed -i 's/"vcpu_count": [0-9]\+/"vcpu_count": '"${CPU}"'/' "${FC_CONFIG_FILE}"
+#	sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '"${MEMORY}"'/' "${FC_CONFIG_FILE}"
+#	
+#	echo "Resource configuration updated."
+#}
 
 convert_to_mb() {
     local input=${1}
@@ -51,6 +52,9 @@ convert_to_mb() {
 # Preparation #
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
+
+echo "Remove existing firecracker resources..."
+fc_resource/fc_clean.sh
 
 #echo "Remove existing containers..."
 # -f: force
@@ -212,29 +216,24 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
-	# (CPU, Memory)
-	update_resource_config "1" "2048"
 		
-#./fc_run.sh > /dev/null &
-	sleep 2
+	fc_resource/fc_run.sh -c 1 -m 512 -n 1
 	echo "MicroVm[firecracker] is running."
-
-	ssh -i ubuntu-22.04.id_rsa root@172.16.0.2 "cd ${FC_WORKING_DIR} && rm ${RESULT_DIR}*default* > /dev/null 2>&1 && mkdir -p ${RESULT_DIR}" 2> /dev/null
-	# 여기도 지우는거 넣어야	
-
+	
+	VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
 
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
-		ssh -i ubuntu-22.04.id_rsa root@172.16.0.2 "cd ${FC_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
+		ssh ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
 
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo "Repeat #${i}..."
-			#do_pidstat ${RESULT_FILE}
-			ssh -i ubuntu-22.04.id_rsa root@172.16.0.2 "cd ${FC_WORKING_DIR} && netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}" 2> /dev/null
+			do_pidstat ${RESULT_FILE}
+			ssh ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}" 2> /dev/null
 
-			#kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 		done
 
@@ -242,13 +241,12 @@ else
 	done
 fi
 
-# Copy all result files from Kata Container to host
-sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
-	xargs -I {} sudo docker cp {}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
+# Copy all result files from Firecracker microVM to host
+sudo scp -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
-echo "Stop and Remove containers..."
-# xargs -r: if there is no argument, do not run commands
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
-sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
+
+
+echo "Remove existing firecracker resources..."
+fc_resource/fc_clean.sh
 
 echo "All experiments are completed !!"

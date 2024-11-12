@@ -1,3 +1,4 @@
 net_result/
 net_result.backup/
 fc_resource/*.ext4*
+#fc_resource/fc_ip_list
