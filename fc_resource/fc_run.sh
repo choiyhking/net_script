@@ -2,7 +2,7 @@
 
 
 
-VM_NUM=${1}
+#VM_NUM=${1}
 
 HOST_IFACE="eth0"
 NETWORK_IP_PREFIX="172.16.0."
@@ -64,6 +64,23 @@ EOF
 }
 
 
+# Get options
+while getopts ":c:m:n:" opt; do
+  case $opt in
+    c) CPU=${OPTARG} ;;
+    m) MEMORY=${OPTARG} ;;
+    n) VM_NUM=${OPTARG} ;;
+    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
+    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
+  esac
+done
+
+# Check if all required options are provided
+if [ -z "${CPU}" ] || [ -z "${MEMORY}" ] || [ -z "${VM_NUM}" ]; then
+  echo "Error: Options -c(CPU), -m(Memory), and -n(VM #) are required." >&2
+  exit 1
+fi
+
 # Enable IP forwarding
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
@@ -109,6 +126,8 @@ do
 	cp ${ROOTFS} ${ROOTFS}.${i}
 	sudo sed -i 's/"path_on_host": "[^"]*"/"path_on_host": \"'${ROOTFS}.${i}'\"/' "fc_config.json"
 
+	sudo sed -i 's/"vcpu_count": [0-9]\+/"vcpu_count": '${CPU}'/' "fc_config.json"
+	sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '${MEMORY}'/' "fc_config.json"
 
     rm -f /tmp/firecracker.socket 
 	(firecracker --api-sock /tmp/firecracker.socket --config-file fc_config.json > /dev/null 2>&1) &
@@ -118,7 +137,7 @@ do
 	guest_network_setup ${GUEST_IP} ${TAP_IP} > /dev/null 2>&1
 	echo "Guest network set-up is finished"
 
-	echo "Guest VM initializing...(it takes time)"
+	echo "Guest VM initializing...(it takes some time)"
 	guest_init ${GUEST_IP} > /dev/null 2>&1
 	echo "Guest init is finished"
 
