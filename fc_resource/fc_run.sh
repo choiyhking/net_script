@@ -13,7 +13,7 @@ ROOTFS="ubuntu-22.04.ext4" # Original rootfs. Do not use this directly !!. Only 
 
 
 # Functions
-setup_network_iface(){
+host_network_setup(){
 	# ${1}: tap device
 	# ${2}: tap IP
 
@@ -23,17 +23,16 @@ setup_network_iface(){
 	sudo ip link set dev "${1}" up
 
 	# Set up microVM internet access (specific to tap device)
-	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT || true > /dev/null 2>&1
+	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
 	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
 
-	echo "Network set-up is finished."
+	echo "Host network set-up is finished."
 }
 
-in_the_guest_setup() {
+guest_network_setup() {
 	# ${1}: guest IP
 	# ${2}: tap IP
 	
-	ssh -q -i ubuntu-22.04.id_rsa root@${1} "echo nameserver 155.230.10.2 > /etc/resolv.conf" 
 	ssh -q -i ubuntu-22.04.id_rsa root@${1} sh -c "cat <<EOF | tee /etc/systemd/network/my-network-config.network > /dev/null
 [Match] 
 Name=${HOST_IFACE} 
@@ -44,11 +43,24 @@ Gateway=${2}
 EOF
 "
 
-	ssh -q -i ubuntu-22.04.id_rsa root@${1} "mkdir /var/lib/dpkg; touch /var/lib/dpkg/status"
-	
-	ssh -q -i ubuntu-22.04.id_rsa root@${1} "systemctl enable systemd-networkd.service; systemctl restart systemd-networkd.service"
-	
-	echo "In the guest set-up finished."
+	ssh -q -i ubuntu-22.04.id_rsa root@${1} <<EOF
+	echo nameserver 155.230.10.2 > /etc/resolv.conf
+	mkdir /var/lib/dpkg > /dev/null 2>&1
+	touch /var/lib/dpkg/status > /dev/null 2>&1
+	systemctl enable systemd-networkd.service > /dev/null 2>&1
+	systemctl restart systemd-networkd.service > /dev/null 2>&1
+EOF
+}
+
+guest_init() {
+	# ${1}: guest IP
+
+	ssh -q -i ubuntu-22.04.id_rsa root@${1} <<EOF
+    apt update
+    apt install -y git netperf
+    git clone https://github.com/choiyhking/net_script.git 
+    mkdir -p net_script/net_result/fc/throughput/
+EOF
 }
 
 
@@ -56,17 +68,20 @@ EOF
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
-sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE || true > /dev/null 2>&1
+sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
 sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADEi > /dev/null 2>&1
-sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true > /dev/null 2>&1
+sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 
-TARGET="fc_resource/ubuntu-22.04.ext4"
-if [ ! -f "${TARGET}" ]; then
-	echo "There's no original rootfs. Downloading now..."
-	wget -q -O ${TARGET} "https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/ubuntu-22.04.ext4"
+# Check original rootfs
+if [ ! -f "${ROOTFS}" ]; then
+	wget -q -O ${ROOTFS} "https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/ubuntu-22.04.ext4"
 fi
 
+ROOTFS_SIZE="5G"
+truncate -s ${ROOTFS_SIZE} ${ROOTFS} > /dev/null 2>&1
+e2fsck -f ${ROOTFS} > /dev/null 2>&1
+resize2fs ${ROOTFS} > /dev/null 2>&1
 
 
 for ((i=1; i<=${VM_NUM}; i++))
@@ -85,7 +100,9 @@ do
 	echo "  GUEST IP: ${GUEST_IP}"
 	echo "  MAC Address: ${MAC_ADDR}"
 
-	setup_network_iface ${TAP_DEV} ${TAP_IP}
+	echo "${GUEST_IP}" >> fc_ip_list
+
+	host_network_setup ${TAP_DEV} ${TAP_IP}
 
 	sudo sed -i 's/"host_dev_name": "[^"]*"/"host_dev_name": \"'${TAP_DEV}'\"/' "fc_config.json"
 	sudo sed -i 's/"guest_mac": "[^"]*"/"guest_mac": \"'${MAC_ADDR}'\"/' "fc_config.json"
@@ -95,11 +112,15 @@ do
 
     rm -f /tmp/firecracker.socket 
 	(firecracker --api-sock /tmp/firecracker.socket --config-file fc_config.json > /dev/null 2>&1) &
-	
 	sleep 3
 	echo "Firecracker microVM is created."
-	in_the_guest_setup ${GUEST_IP} ${TAP_IP}
 
+	guest_network_setup ${GUEST_IP} ${TAP_IP} > /dev/null 2>&1
+	echo "Guest network set-up is finished"
+
+	echo "Guest VM initializing...(it takes time)"
+	guest_init ${GUEST_IP} > /dev/null 2>&1
+	echo "Guest init is finished"
 
     # Next network subnet
     # 172.16.0.0/30, 172.16.0.4/30, ...
