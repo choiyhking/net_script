@@ -11,7 +11,7 @@ SUBNET_MASK="/30"
 SUBNET_SIZE=4
 ROOTFS="ubuntu-22.04.ext4" # Original rootfs. Do not use this directly !!. Only copy allowed.
 PRIVATE_KEY="ubuntu-22.04.id_rsa"
-SSH_OPTIONS="-i ${PRIVATE_KEY} root@"
+SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
 # Functions
 host_network_setup(){

@@ -6,7 +6,7 @@ SERVER_IP="192.168.51.232"
 M_SIZES=(32 64) # array
 TIME="20" # netperf test time (sec)
 PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
-SSH_OPTIONS="-i ${PRIVATE_KEY} root@"
+SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
 RESULT_DIR="net_result/fc/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"

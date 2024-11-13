@@ -1,7 +1,0 @@
-VM 1:
-  PID: 26001
-  Subnet: 172.16.0.0/30
-  TAP IP: 172.16.0.1
-  GUEST IP: 172.16.0.2
-  MAC Address: 06:00:AC:10:00:02
-
