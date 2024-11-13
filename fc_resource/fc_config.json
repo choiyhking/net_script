@@ -7,7 +7,7 @@
   "drives": [
     {
       "drive_id": "rootfs",
-      "path_on_host": "ubuntu-22.04.ext4.2",
+      "path_on_host": "ubuntu-22.04.ext4.1",
       "is_root_device": true,
       "partuuid": null,
       "is_read_only": false,
@@ -26,8 +26,8 @@
   "network-interfaces": [
     {
       "iface_id": "eth0",
-      "guest_mac": "06:00:AC:10:00:06",
-      "host_dev_name": "fc-2-tap0"
+      "guest_mac": "06:00:AC:10:00:02",
+      "host_dev_name": "fc-1-tap0"
     }
   ],
   "vsock": null,

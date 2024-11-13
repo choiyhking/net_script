@@ -91,7 +91,7 @@ fi
 #####################
 # Start Experiments #
 #####################
-echo "Start experiments..."
+#echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -101,7 +101,8 @@ if [ ! -z ${CPU} ]; then
     echo "MicroVm[firecracker] is running."
 
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
-
+	
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -109,7 +110,7 @@ if [ ! -z ${CPU} ]; then
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
@@ -120,7 +121,7 @@ if [ ! -z ${CPU} ]; then
 			sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 
 # Modify <Memory> option
@@ -132,6 +133,7 @@ elif [ ! -z ${MEMORY} ]; then
 	
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 	
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -139,7 +141,7 @@ elif [ ! -z ${MEMORY} ]; then
 
 		for i in $(seq 1 ${REPEAT})
         do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
@@ -150,7 +152,7 @@ elif [ ! -z ${MEMORY} ]; then
             sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 
 # Modify <STREAM_NUM> option
@@ -163,10 +165,11 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
-	
+
+	echo "Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo "Repeat ${i}..."
+		echo -e "\tRepeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
 				cd '"${FC_WORKING_DIR}"'
@@ -186,17 +189,17 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
+	
+	echo "Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo "Repeat ${i}..."
+		echo -e "\tRepeat ${i}..."
 		awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
-			xargs -I {} -p${INSTANCE_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
-				echo {}
+			xargs -I {} -P${INSTANCE_NUM} ssh ${SSH_OPTIONS}{} "
 				cd '"${FC_WORKING_DIR}"'
-				[ ! -s '"${RESULT_FILE}"'_{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
-				netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{} &
-				wait
-				" > /dev/null 2>&1
+				[ ! -s '"${RESULT_FILE}"'_"VM"{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_"VM"{} > /dev/null
+				netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_"VM"{} &
+				wait" > /dev/null 2>&1
 		sleep 3
 	done
 
@@ -211,7 +214,7 @@ else
 	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 
-
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
@@ -219,28 +222,35 @@ else
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat ${i}..."
 			do_pidstat ${RESULT_FILE}
-#ssh -tt ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}" > /dev/null 2>&1
 			ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
-			echo "hi"
-
+		
 			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "Message size[${M_SIZE}B] finished."
 	done
 fi
 
 # Copy all result files from Firecracker microVM to host
 echo "Copy results from Firecracker microVM to host."
-sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
+#if [ ! -z ${INSTANCE_NUM} ]; then
+#	for i in $(seq 1 ${INSTANCE_NUM})
+#	do
+#		temp_vm_ip=$(sed -n "/^VM 2:/,/^$/ { /GUEST IP:/ s/.*: *//p }" fc_resource/fc_info_list)
+#		sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
+#	done
+#else
+#	sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
+#fi
 
-
+awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
+		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
 echo "Remove existing firecracker resources..."
 #fc_resource/fc_clean.sh

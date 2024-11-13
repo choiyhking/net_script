@@ -24,10 +24,10 @@ host_network_setup(){
 	sudo ip link set dev "${1}" up
 
 	# Set up microVM internet access (specific to tap device)
-	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT || true > /dev/null 2>&1
-	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT
+	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
+	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
 
-	echo "Host network set-up is finished."
+	echo -e "\tHost network set-up is finished."
 }
 
 guest_network_setup() {
@@ -86,10 +86,10 @@ fi
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
-sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE || true > /dev/null 2>&1
+sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
 sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADEi > /dev/null 2>&1
 sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
-sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 
 # Check original rootfs
 if [ ! -f "${ROOTFS}" ]; then
@@ -105,6 +105,7 @@ resize2fs ${ROOTFS} > /dev/null 2>&1
 
 for ((i=1; i<=${VM_NUM}; i++))
 do
+	echo "Creating Firecracker microVM..."
 	TAP_DEV="fc-${i}-tap0"
 	TAP_IP=${NETWORK_IP_PREFIX}$((${NETWORK_IP_LAST_OCTET} + 1))
 	GUEST_IP=${NETWORK_IP_PREFIX}$((${NETWORK_IP_LAST_OCTET} + 2))
@@ -127,10 +128,10 @@ do
     rm -f /tmp/firecracker.socket 
 	(firecracker --api-sock /tmp/firecracker.socket --config-file fc_config.json > /dev/null 2>&1) &
 	sleep 3
-	echo "Firecracker microVM is created."
+	echo -e "\tMicroVM is created."
 	
 	# Save information
-	cat <<EOF > fc_info_list
+	cat <<EOF >> fc_info_list
 VM ${i}:
   PID: $!
   Subnet: ${NETWORK_IP_PREFIX}${NETWORK_IP_LAST_OCTET}${SUBNET_MASK}
@@ -142,11 +143,11 @@ EOF
 
 
 	guest_network_setup ${GUEST_IP} ${TAP_IP} > /dev/null 2>&1
-	echo "Guest network set-up is finished."
+	echo -e "\tGuest network set-up is finished."
 
-	echo "Guest VM initializing...(it takes some time)"
+	echo -e "\tGuest VM initializing...(it takes some time)"
 	guest_init ${GUEST_IP} > /dev/null 2>&1
-	echo "Guest initialization is finished."
+	echo -e "\tGuest initialization is finished."
 
     # Next network subnet
     # 172.16.0.0/30, 172.16.0.4/30, ...
