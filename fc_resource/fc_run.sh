@@ -123,7 +123,9 @@ do
 	sudo sed -i 's/"path_on_host": "[^"]*"/"path_on_host": \"'${ROOTFS}.${i}'\"/' "fc_config.json"
 
 	sudo sed -i 's/"vcpu_count": [0-9]\+/"vcpu_count": '${CPU}'/' "fc_config.json"
-	sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '${MEMORY}'/' "fc_config.json"
+	#sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '${MEMORY}'/' "fc_config.json"
+	sudo sed -i 's/"mem_size_mib": [^,]*/"mem_size_mib": '${MEMORY}'/' "fc_config.json"
+
 
     rm -f /tmp/firecracker.socket 
 	(firecracker --api-sock /tmp/firecracker.socket --config-file fc_config.json > /dev/null 2>&1) &

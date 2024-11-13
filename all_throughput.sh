@@ -1,20 +1,22 @@
 #!/bin/bash
 
+echo "Enter the number of iterations (e.g., 10):"
+read -p ">> " REPEAT
+#REPEAT=10
 
-REPEAT=10
+echo "Enter the virtualization platform (e.g., runc, kata, fc, vm):"
+read -p ">> " PLATFORM
+#PLATFORM=${1}
 
-#echo "********************************************"`
-#echo "**** BACKUP AND REMOVE EXISTING RESULTS ****"
-#echo "********************************************"`
-#sudo rm -rf net_result.backup
-#sudo cp -r net_result net_result.backup 2> /dev/null
-#sudo rm -rf net_result
+# Remove existing results
+sudo rm -rf net_result/${PLATFORM}
+
 
 echo "************************************"
 echo "**** START <DEFAULT> EXPERIMENT ****"
 echo "************************************"
 # default
-./kata_throughput.sh -r "${REPEAT}" 
+./${PLATFORM}_throughput.sh -r "${REPEAT}" 
 
 echo "********************************"
 echo "**** START <CPU> EXPERIMENT ****"
@@ -22,7 +24,7 @@ echo "********************************"
 # CPU 
 for arg in 1 2 3 4
 do
-	./kata_throughput.sh -r "${REPEAT}" -c "${arg}"
+	./${PLATFORM}_throughput.sh -r "${REPEAT}" -c "${arg}"
 done
 
 echo "***********************************"
@@ -31,7 +33,7 @@ echo "***********************************"
 # Memory
 for arg in 512m 1G 2G 4G 6G
 do
-	./kata_throughput.sh -r "${REPEAT}" -m "${arg}"
+	./${PLATFORM}_throughput.sh -r "${REPEAT}" -m "${arg}"
 done
 
 echo "***********************************"
@@ -40,7 +42,7 @@ echo "***********************************"
 # Stream
 for arg in 1 3 5 10
 do
-	./kata_throughput.sh -r "${REPEAT}" -s "${arg}"
+	./${PLATFORM}_throughput.sh -r "${REPEAT}" -s "${arg}"
 done
 
 echo "****************************************"
@@ -49,7 +51,7 @@ echo "****************************************"
 # Concurrency
 for arg in 1 4 8
 do
-	./kata_throughput.sh -r "${REPEAT}" -n "${arg}"
+	./${PLATFORM}_throughput.sh -r "${REPEAT}" -n "${arg}"
 done
 
 

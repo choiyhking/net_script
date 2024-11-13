@@ -4,7 +4,8 @@
 cd "$(dirname "$0")"
 
 
-killall firecracker 2> /dev/null
+#killall firecracker 2> /dev/null
+pgrep [f]irecracker | xargs kill -9 2> /dev/null
 
 # e.g., fc-1-tap0
 COUNT=$(find /sys/class/net/fc* 2> /dev/null | wc -l) # the number of fc tap devices

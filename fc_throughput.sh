@@ -210,10 +210,9 @@ else
 		
 	fc_resource/fc_run.sh -c 1 -m 512 -n 1
 	echo "MicroVm[firecracker] is running."
-	
 	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
-
+	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -228,7 +227,6 @@ else
 				cd ${FC_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
-		
 			kill $(pgrep [p]idstat) > /dev/null
 			sleep 3
 		done
@@ -253,6 +251,6 @@ awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
 		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
 echo "Remove existing firecracker resources..."
-#fc_resource/fc_clean.sh
+fc_resource/fc_clean.sh
 
 echo "All experiments are completed !!"
