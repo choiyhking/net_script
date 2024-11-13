@@ -43,18 +43,8 @@ convert_to_mb() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing Firecracker resources..."
+echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
-
-#echo "Remove existing containers..."
-# -f: force
-# -q: quiet
-#sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
-
-#echo "Building a new image..."
-#sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
-#sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
-
 
 # Get options
 while getopts ":r:c:m:s:n:" opt; do
@@ -241,7 +231,7 @@ echo "Copy results from Firecracker microVM to host."
 awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
 		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
-echo "Remove existing Firecracker resources..."
+echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
 
 echo "All experiments are completed !!"

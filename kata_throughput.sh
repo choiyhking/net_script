@@ -56,7 +56,7 @@ convert_to_mb() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing containers..."
+echo "Remove existing containers."
 # -f: force
 # -q: quiet
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
@@ -91,7 +91,7 @@ fi
 #####################
 # Start Experiments #
 #####################
-echo "Start experiments..."
+#echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -104,6 +104,7 @@ if [ ! -z ${CPU} ]; then
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
+	echo "Start experiments..."
 
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -136,6 +137,7 @@ elif [ ! -z ${MEMORY} ]; then
 	echo "Container[kata] is running"
 	
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
+	echo "Start experiments..."
 	
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -169,6 +171,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
+	echo "Start experiments..."
 	
 	for i in $(seq 1 ${REPEAT} )
 	do
@@ -199,6 +202,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	echo "Containers[kata] are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
+	echo "Start experiments..."
 
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -225,6 +229,7 @@ else
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null 
+	echo "Start experiments..."
 
 	for M_SIZE in ${M_SIZES[@]}
 	do
@@ -250,7 +255,7 @@ fi
 sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
 	xargs -I {} sudo docker cp {}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
 
-echo "Stop and Remove containers..."
+echo "Stop and Remove containers."
 # xargs -r: if there is no argument, do not run commands
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1

@@ -29,7 +29,7 @@ do_pidstat() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing containers..."
+echo "Remove existing containers."
 # -f: force
 # -q: quiet
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null 
@@ -211,7 +211,7 @@ else
 	done
 fi
 
-echo "Stop and Remove containers..."
+echo "Stop and Remove containers."
 # xargs -r: if there is no argument, do not run commands
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker stop > /dev/null 2>&1
 sudo docker ps -a -q --filter "name=${CONTAINER_NAME}" | xargs -r sudo docker rm > /dev/null 2>&1
