@@ -43,7 +43,7 @@ convert_to_mb() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing firecracker resources..."
+echo "Remove existing Firecracker resources..."
 fc_resource/fc_clean.sh
 
 #echo "Remove existing containers..."
@@ -88,7 +88,7 @@ if [ ! -z ${CPU} ]; then
 
 
 	fc_resource/fc_run.sh -c ${CPU} -m 4096 -n 1
-    echo "MicroVm[firecracker] is running."
+    echo "Firecracker microVM is running."
 
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 	
@@ -120,7 +120,7 @@ elif [ ! -z ${MEMORY} ]; then
 
 	
 	fc_resource/fc_run.sh -c 4 -m $(convert_to_mb ${MEMORY}) -n 1
-    echo "MicroVm[firecracker] is running."
+    echo "Firecracker microVM is running."
 	
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 	
@@ -151,7 +151,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
 	fc_resource/fc_run.sh -c 4 -m 4096 -n 1
-    echo "MicroVm[firecracker] is running."
+    echo "Firecracker microVM is running."
 
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 
@@ -176,7 +176,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
 	fc_resource/fc_run.sh -c 1 -m 512 -n ${INSTANCE_NUM}
-    echo "MicroVMs[firecracker] are running."
+    echo "Firecracker microVMs are running."
 
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
@@ -200,7 +200,7 @@ else
 
 		
 	fc_resource/fc_run.sh -c 1 -m 512 -n 1
-	echo "MicroVm[firecracker] is running."
+	echo "Firecracker microVM is running."
 	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
 	
@@ -222,7 +222,7 @@ else
 			sleep 3
 		done
 
-		echo -e "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 fi
 
