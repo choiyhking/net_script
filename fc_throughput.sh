@@ -168,12 +168,12 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	do
 		echo "Repeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
-		    xargs -I{} -P${STREAM_NUM} ssh ${SSH_OPTIONS}${VM_IP} sh -c "
-				'if [ ! -s \"${RESULT_FILE}\"_{} ]; then
-					echo \"${HEADER}\" | tee \"${RESULT_FILE}\"_{} > /dev/null
-				fi
-			netperf -H ${SERVER_IP} -l "${TIME} | tail -n 1 >> '"${RESULT_FILE}"'_{} &
-			wait'"
+		    xargs -I{} -P${STREAM_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
+				cd '"${FC_WORKING_DIR}"'
+				[ ! -s '"${RESULT_FILE}"'_{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
+                netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{} &
+				wait
+                " > /dev/null 2>&1
 		sleep 3
 	done
 
@@ -190,11 +190,13 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	do
 		echo "Repeat ${i}..."
 		awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
-			xargs -I {} -P${INSTANCE_NUM} ssh ${SSH_OPTIONS}{} sh -c '
-				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
-					echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
-				fi
-			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
+			xargs -I {} -p${INSTANCE_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
+				echo {}
+				cd '"${FC_WORKING_DIR}"'
+				[ ! -s '"${RESULT_FILE}"'_{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
+				netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{} &
+				wait
+				" > /dev/null 2>&1
 		sleep 3
 	done
 

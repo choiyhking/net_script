@@ -24,7 +24,7 @@ host_network_setup(){
 	sudo ip link set dev "${1}" up
 
 	# Set up microVM internet access (specific to tap device)
-	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT || true
+	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT || true > /dev/null 2>&1
 	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT
 
 	echo "Host network set-up is finished."
@@ -86,9 +86,9 @@ fi
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
-sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE || true 
+sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE || true > /dev/null 2>&1
 sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADEi > /dev/null 2>&1
-sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # Check original rootfs
