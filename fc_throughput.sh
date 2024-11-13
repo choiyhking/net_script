@@ -20,16 +20,6 @@ do_pidstat() {
 	(sleep 1; pidstat -p $(pgrep [f]irecracker) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
 
-#update_resource_config() {
-#	local CPU=${1}
-#	local MEMORY=$(convert_to_mb ${2})
-#
-#	sudo sed -i 's/"vcpu_count": [0-9]\+/"vcpu_count": '"${CPU}"'/' "${FC_CONFIG_FILE}"
-#	sudo sed -i 's/"mem_size_mib": [0-9]\+/"mem_size_mib": '"${MEMORY}"'/' "${FC_CONFIG_FILE}"
-#	
-#	echo "Resource configuration updated."
-#}
-
 convert_to_mb() {
     local input=${1}
     local result
@@ -127,8 +117,9 @@ if [ ! -z ${CPU} ]; then
 # Modify <Memory> option
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
+
 	
-	fc_resource/fc_run.sh -c 4 -m ${MEMORY} -n 1
+	fc_resource/fc_run.sh -c 4 -m $(convert_to_mb ${MEMORY}) -n 1
     echo "MicroVm[firecracker] is running."
 	
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
@@ -185,7 +176,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
 	fc_resource/fc_run.sh -c 1 -m 512 -n ${INSTANCE_NUM}
-    echo "MicroVm[firecracker] is running."
+    echo "MicroVMs[firecracker] are running."
 
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
@@ -250,7 +241,7 @@ echo "Copy results from Firecracker microVM to host."
 awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
 		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
-echo "Remove existing firecracker resources..."
+echo "Remove existing Firecracker resources..."
 fc_resource/fc_clean.sh
 
 echo "All experiments are completed !!"

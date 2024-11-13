@@ -30,7 +30,7 @@ update_resource_config() {
 
 	sudo systemctl restart containerd.service > /dev/null
 	
-	echo "Resource configuration updated."
+	echo -e "\tResource configuration updated."
 }
 
 convert_to_mb() {
@@ -112,7 +112,7 @@ if [ ! -z ${CPU} ]; then
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
@@ -121,7 +121,7 @@ if [ ! -z ${CPU} ]; then
 			sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 
 # Modify <Memory> option
@@ -144,7 +144,7 @@ elif [ ! -z ${MEMORY} ]; then
 		
 		for i in $(seq 1 ${REPEAT})
         do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
@@ -153,7 +153,7 @@ elif [ ! -z ${MEMORY} ]; then
             sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 
 # Modify <STREAM_NUM> option
@@ -172,7 +172,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	
 	for i in $(seq 1 ${REPEAT} )
 	do
-		echo "Repeat ${i}..."
+		echo -e "\tRepeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} sh -c '
 				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
@@ -202,7 +202,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo "Repeat ${i}..."
+		echo -e "\tRepeat ${i}..."
 		sudo docker ps -q --filter name=${CONTAINER_NAME} | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} sh -c '
 				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
@@ -233,7 +233,7 @@ else
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo "Repeat #${i}..."
+			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
@@ -242,7 +242,7 @@ else
 			sleep 3
 		done
 
-		echo "Message size[${M_SIZE}B] finished."
+		echo -e "\tMessage size[${M_SIZE}B] finished."
 	done
 fi
 
