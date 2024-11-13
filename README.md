@@ -33,8 +33,7 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 ```
 
 ## Script
-### Runc
-**`runc_throughput.sh`**
+### <platform>_throughput.sh
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
@@ -47,11 +46,6 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 `-n`: 한 host에서 동시에 실행되는 컨테이너의 개수: e.g., 1, 5, 10
 
 한 번에 하나의 옵션만 사용 가능.
-
-### Kata Container
-### Firecracker
-### Virtual Machine(QEMU/KVM)
-
 
 ## Trouble Shooting
 - `Your kernel does not support memory limit capabilities or the cgroup is not mounted. Limitation discarded.`
