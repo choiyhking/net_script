@@ -10,7 +10,7 @@ NETWORK_IP_LAST_OCTET="0"
 SUBNET_MASK="/30"
 SUBNET_SIZE=4
 ROOTFS="ubuntu-22.04.ext4" # Original rootfs. Do not use this directly !!. Only copy allowed.
-PRIVATE_KEY=ubuntu-22.04.id_rsa
+PRIVATE_KEY="ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-i ${PRIVATE_KEY} root@"
 
 # Functions
@@ -24,8 +24,8 @@ host_network_setup(){
 	sudo ip link set dev "${1}" up
 
 	# Set up microVM internet access (specific to tap device)
-	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
-	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT > /dev/null 2>&1
+	sudo iptables -D FORWARD -i "${1}" -o "${HOST_IFACE}" -j ACCEPT || true
+	sudo iptables -I FORWARD 1 -i "${1}" -o "${HOST_IFACE}" -j ACCEPT
 
 	echo "Host network set-up is finished."
 }
@@ -45,11 +45,11 @@ EOF
 "
 
 	ssh ${SSH_OPTIONS}${1} <<EOF
-	echo nameserver 155.230.10.2 > /etc/resolv.conf
-	mkdir /var/lib/dpkg > /dev/null 2>&1
-	touch /var/lib/dpkg/status > /dev/null 2>&1
-	systemctl enable systemd-networkd.service > /dev/null 2>&1
-	systemctl restart systemd-networkd.service > /dev/null 2>&1
+	echo nameserver 155.230.10.2 > /etc/resolv.conf;
+	mkdir /var/lib/dpkg;
+	touch /var/lib/dpkg/status;
+	systemctl enable systemd-networkd.service;
+	systemctl restart systemd-networkd.service;
 EOF
 }
 
@@ -86,13 +86,14 @@ fi
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
-sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
+sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE || true 
 sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADEi > /dev/null 2>&1
-sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
-sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
+sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 # Check original rootfs
 if [ ! -f "${ROOTFS}" ]; then
+	echo "ROOTFS is missing. Downloading..."
 	wget -q -O ${ROOTFS} "https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/ubuntu-22.04.ext4"
 fi
 
@@ -111,7 +112,8 @@ do
 	MAC_LAST_OCTET=$(printf "%02x" $((2 + 4 * (i - 1)))) # maximum 64 mac addresses are available
 	MAC_ADDR="06:00:AC:10:00:${MAC_LAST_OCTET}"
 
-	echo "${GUEST_IP}" >> fc_ip_list
+	
+	#echo "${GUEST_IP}" >> fc_ip_list
 	host_network_setup ${TAP_DEV} ${TAP_IP}
 	
 	sudo sed -i 's/"host_dev_name": "[^"]*"/"host_dev_name": \"'${TAP_DEV}'\"/' "fc_config.json"
@@ -127,14 +129,16 @@ do
 	sleep 3
 	echo "Firecracker microVM is created."
 	
-	# Print information
-	echo "VM ${i}:"
-	echo "  PID: $!"
-	echo "  Subnet: ${NETWORK_IP_PREFIX}${NETWORK_IP_LAST_OCTET}${SUBNET_MASK}"
-	echo "  TAP IP: ${TAP_IP}"
-	echo "  GUEST IP: ${GUEST_IP}"
-	echo "  MAC Address: ${MAC_ADDR}"
-	
+	# Save information
+	cat <<EOF > fc_info_list
+VM ${i}:
+  PID: $!
+  Subnet: ${NETWORK_IP_PREFIX}${NETWORK_IP_LAST_OCTET}${SUBNET_MASK}
+  TAP IP: ${TAP_IP}
+  GUEST IP: ${GUEST_IP}
+  MAC Address: ${MAC_ADDR}
+
+EOF
 
 
 	guest_network_setup ${GUEST_IP} ${TAP_IP} > /dev/null 2>&1
@@ -142,7 +146,7 @@ do
 
 	echo "Guest VM initializing...(it takes some time)"
 	guest_init ${GUEST_IP} > /dev/null 2>&1
-	echo "Guest init is finished."
+	echo "Guest initialization is finished."
 
     # Next network subnet
     # 172.16.0.0/30, 172.16.0.4/30, ...

@@ -15,6 +15,6 @@ done
 
 rm -rf /tmp/firecracker.socket
 
-rm fc_ip_list > /dev/null 2>&1
+rm fc_info_list > /dev/null 2>&1
 
 rm -f ubuntu-22.04.ext4.*
