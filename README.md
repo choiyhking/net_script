@@ -33,7 +33,7 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 ```
 
 ## Script
-### <platform>_throughput.sh
+### \<platform\>_throughput.sh
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
