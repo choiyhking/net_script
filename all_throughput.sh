@@ -5,7 +5,7 @@
 echo "Enter the number of iterations (e.g., 10):"
 read -p ">> " REPEAT
 
-echo "Enter the virtualization platform (e.g., runc, kata, fc, vm):"
+echo "Select the virtualization platform (e.g., runc, kata, fc, vm):"
 read -p ">> " PLATFORM
 
 
