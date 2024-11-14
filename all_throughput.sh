@@ -18,7 +18,7 @@ echo "**** START <DEFAULT> EXPERIMENT ****"
 echo "************************************"
 # default
 ./${PLATFORM}_throughput.sh -r "${REPEAT}" 
-
+echo ""
 
 echo "********************************"
 echo "**** START <CPU> EXPERIMENT ****"
@@ -29,6 +29,7 @@ do
 	echo "CPU: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -c "${arg}"
 done
+echo ""
 
 
 echo "***********************************"
@@ -40,6 +41,7 @@ do
 	echo "MEMORY: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -m "${arg}"
 done
+echo ""
 
 
 echo "***********************************"
@@ -51,6 +53,7 @@ do
 	echo "STREAM: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -s "${arg}"
 done
+echo ""
 
 
 echo "****************************************"
@@ -62,6 +65,7 @@ do
 	echo "CONCURRENCY: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -n "${arg}"
 done
+echo ""
 
 
 echo "***************************************************"
