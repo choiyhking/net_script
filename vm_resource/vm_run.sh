@@ -29,6 +29,26 @@ convert_to_kb() {
     echo "${result}"
 }
 
+wait_for_vm_state() {
+	# ${1}: command
+	# ${2}: VM name
+	
+	if [[ ${1} == "start" ]]; then
+	    sudo virsh start ${2} 2> /dev/null
+
+	    while ! sudo virsh domstate ${2} | grep -q "running"; do
+	        sleep 2 
+            done
+	
+	elif [[ ${1} == "shutdown" ]]; then
+	    sudo virsh shutdown ${2} 2> /dev/null
+	    
+	    while sudo virsh domstate ${2} | grep -q "running"; do
+	        sleep 2 
+            done
+	fi
+}
+
 
 update_resource_config() {
 	# ${1}: VM name
@@ -40,9 +60,8 @@ update_resource_config() {
 	
 	sudo virsh define ${CONFIG}
 
-	sudo virsh shutdown ${1} 2> /dev/null
-	sudo virsh start ${1}
-	
+	wait_for_vm_state shutdown ${1}
+	wait_for_vm_state start ${1}
 }
 
 update_network_config() {
@@ -103,12 +122,12 @@ echo "Remove existing VMs and resources except for orginal VM."
 
 for ((i=1; i<=${VM_NUM}; i++))
 do
-	sudo virsh start ${BASE_VM} 2> /dev/null
+	wait_for_vm_state start ${BASE_VM}
 	OLD_GUEST_IP=$(sudo virsh domifaddr ${BASE_VM} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
 	#echo ${OLD_GUEST_IP}
 	VM_NAME=${VM_NAME_PREFIX}${i}
-	sudo virsh shutdown ${BASE_VM} 2> /dev/null
-	sleep 5
+	wait_for_vm_state shutdown ${BASE_VM}
+	sleep 10 
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
 
 	update_resource_config ${VM_NAME} ${CPU}
