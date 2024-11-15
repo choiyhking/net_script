@@ -13,3 +13,9 @@ for VM in $(sudo virsh list --all --name | grep ^net-vm-[^-]*$); do
 done
 
 rm -f net-vm-*.xml > /dev/null 2>&1
+rm -f net-vm-*.qcow2 > /dev/null 2>&1
+
+for file in $(find . -maxdepth 1 -type f -name "net-vm-*"); do
+	rm -f ${file} > /dev/null 2>&1
+done
+

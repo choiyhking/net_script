@@ -103,16 +103,17 @@ echo "Remove existing VMs and resources except for orginal VM."
 
 for ((i=1; i<=${VM_NUM}; i++))
 do
+	sudo virsh start ${BASE_VM} 2> /dev/null
+	OLD_GUEST_IP=$(sudo virsh domifaddr ${BASE_VM} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
+	#echo ${OLD_GUEST_IP}
 	VM_NAME=${VM_NAME_PREFIX}${i}
 	sudo virsh shutdown ${BASE_VM} 2> /dev/null
 	sleep 5
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
 
-	echo -e "VM-${i} is created."
 	update_resource_config ${VM_NAME} ${CPU}
 	echo -e "Resource configuration updated." 
 
-	OLD_GUEST_IP=$(sudo virsh domifaddr ${VM_NAME} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
 	NEW_GUEST_IP="192.168.122.1$((${i} - 1))"
 	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
 	# ip, mac, gateway, ... 
