@@ -1,4 +1,6 @@
 net_result/
 net_result.backup/
 fc_resource/*.ext4*
-#fc_resource/fc_ip_list
+vm_resource/*.iso*
+vm_resource/*.qcow2*
+vm_resource/*.xml*
