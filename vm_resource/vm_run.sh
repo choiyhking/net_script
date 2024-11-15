@@ -19,7 +19,7 @@ convert_to_kb() {
     local result
 
     if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 * 0124))
+        result=$(( ${BASH_REMATCH[1]} * 1024 * 1024))
     elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
 	result=$(( ${BASH_REMATCH[1]} * 1024 ))
     else
@@ -55,8 +55,8 @@ update_resource_config() {
 	
 	local CONFIG=${1}-config.xml
 	sudo virsh dumpxml ${1} > ${CONFIG}
-	sudo sed -i 's/<vcpu placement="static">1<\/vcpu>/<vcpu placement="static">'"${CPU}"'<\/vcpu>/' ${CONFIG}
-	sudo sed -i 's/<memory unit="KiB">1048576<\/memory>/<memory unit="KiB">'"$(convert_to_kb ${MEMORY})"'<\/memory>/' ${CONFIG}
+	sudo sed -i "s/<vcpu placement='static'>[0-9]\+<\/vcpu>/<vcpu placement='static'>"${CPU}"<\/vcpu>/" ${CONFIG}
+	sudo sed -i "s/<memory unit='KiB'>[0-9]\+<\/memory>/<memory unit='KiB'>"$(convert_to_kb ${MEMORY})"<\/memory>/" ${CONFIG}
 	
 	sudo virsh define ${CONFIG}
 
@@ -90,7 +90,7 @@ EOF
 		sed -i 's/${ORIGINAL_HOSTNAME}/${3}/g' /etc/hosts
 		netplan apply
 	"
-	rm temp
+	#rm temp
 }
 
 # Get options
@@ -124,16 +124,16 @@ for ((i=1; i<=${VM_NUM}; i++))
 do
 	wait_for_vm_state start ${BASE_VM}
 	OLD_GUEST_IP=$(sudo virsh domifaddr ${BASE_VM} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
-	#echo ${OLD_GUEST_IP}
+	echo ${OLD_GUEST_IP}
 	VM_NAME=${VM_NAME_PREFIX}${i}
 	wait_for_vm_state shutdown ${BASE_VM}
-	sleep 10 
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
 
 	update_resource_config ${VM_NAME} ${CPU}
 	echo -e "Resource configuration updated." 
 
-	NEW_GUEST_IP="192.168.122.1$((${i} - 1))"
+	NEW_GUEST_IP="192.168.122.$((100 + ${i}))"
+	echo ${NEW_GUEST_IP}
 	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
 	# ip, mac, gateway, ... 
 

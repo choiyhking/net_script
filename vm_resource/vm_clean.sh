@@ -1,14 +1,30 @@
 #!/bin/bash
 
+wait_for_vm_state() {
+        # ${1}: command
+        # ${2}: VM name
 
+        if [[ ${1} == "start" ]]; then
+            sudo virsh start ${2} 2> /dev/null
+
+            while ! sudo virsh domstate ${2} | grep -q "running"; do
+                sleep 2 
+            done
+
+        elif [[ ${1} == "shutdown" ]]; then
+            sudo virsh shutdown ${2} 2> /dev/null
+            
+            while sudo virsh domstate ${2} | grep -q "running"; do
+                sleep 2 
+            done
+        fi
+}
 
 # Move to current script's directory
 cd "$(dirname "$0")"
 
-
 for VM in $(sudo virsh list --all --name | grep ^net-vm-[^-]*$); do
-    #sudo virsh shutdown ${VM}
-    sudo virsh destroy ${VM} 2> /dev/null
+    wait_for_vmstate shutdown ${VM}
     sudo virsh undefine ${VM} --remove-all-storage --nvram 2> /dev/null
 done
 
