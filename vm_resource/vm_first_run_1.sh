@@ -52,7 +52,7 @@ echo "[To-Do] Hostname: ${VM_NAME}"
 echo "[To-Do] Check \"Install OpenSSH Server\""
 echo "[To-Do] RUN \"sudo sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config\""
 echo "[To-Do] RUN \"sudo systemctl enable ssh && sudo systemctl start ssh\""
-echo "After that, RUN \"./fc_first_run_2.sh\""
+echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 
