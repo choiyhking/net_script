@@ -14,16 +14,14 @@ sudo_prefix() {
 	echo ${SUDO_PW} | sudo -S "$@"
 }
 
-convert_to_mb() {
+convert_to_kb() {
     local input=${1}
     local result
 
-	# e.g., 1G -> 1024
     if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 ))
-	# e.g., 512m -> 512
+        result=$(( ${BASH_REMATCH[1]} * 1024 * 0124))
     elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-        result=${BASH_REMATCH[1]}
+	result=$(( ${BASH_REMATCH[1]} * 1024 ))
     else
         result=${input}
     fi
@@ -35,14 +33,14 @@ convert_to_mb() {
 update_resource_config() {
 	# ${1}: VM name
 	
-	local CONFIG=${1}_config.xml
+	local CONFIG=${1}-config.xml
 	sudo virsh dumpxml ${1} > ${CONFIG}
 	sudo sed -i 's/<vcpu placement="static">1<\/vcpu>/<vcpu placement="static">'"${CPU}"'<\/vcpu>/' ${CONFIG}
-	sudo sed -i 's/<memory unit="KiB">1048576<\/memory>/<memory unit="MiB">'"$(conver_to_mb ${MEMORY})"'<\/memory>/' ${CONFIG}
+	sudo sed -i 's/<memory unit="KiB">1048576<\/memory>/<memory unit="KiB">'"$(convert_to_kb ${MEMORY})"'<\/memory>/' ${CONFIG}
 	
 	sudo virsh define ${CONFIG}
 
-	sudo virsh shutdown ${1}
+	sudo virsh shutdown ${1} 2> /dev/null
 	sudo virsh start ${1}
 	
 }
@@ -99,19 +97,24 @@ BASE_VM="original-net-vm"
 VM_NAME_PREFIX="net-vm-"
 QCOW_PATH="$HOME/net_script/vm_resource/"
 
+
+echo "Remove existing VMs and resources except for orginal VM."
+./vm_clean.sh
+
 for ((i=1; i<=${VM_NUM}; i++))
 do
 	VM_NAME=${VM_NAME_PREFIX}${i}
-	sudo virsh shutdown ${BASE_VM} > /dev/null 2>&1
+	sudo virsh shutdown ${BASE_VM} 2> /dev/null
+	sleep 5
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
 
-	echo -e "\tVirtual machine is created."
+	echo -e "VM-${i} is created."
 	update_resource_config ${VM_NAME} ${CPU}
-	echo -e "\tResource configuration updated." 
+	echo -e "Resource configuration updated." 
 
 	OLD_GUEST_IP=$(sudo virsh domifaddr ${VM_NAME} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
-	NEW_GUEST_IP="192.168.122.${i}"
-	guest_network_setup ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
+	NEW_GUEST_IP="192.168.122.1$((${i} - 1))"
+	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
 	# ip, mac, gateway, ... 
 
 done

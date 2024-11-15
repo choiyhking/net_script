@@ -27,7 +27,7 @@ if [ ! -f "${ISO}" ]; then
 fi
 
 
-echo "Creating Firecracker microVM..."
+echo "Creating virtual machine..."
 sudo virt-install --name=${VM_NAME} \
 	--vcpus=${CPU} \
 	--memory=${MEMORY} \
@@ -36,7 +36,7 @@ sudo virt-install --name=${VM_NAME} \
 	--disk path=${QCOW_PATH}${VM_NAME}.qcow2,size=10,format=qcow2 \
 	--noautoconsole
 
-echo -e "\tQEMU/KVM virtual machine is created."
+echo -e "QEMU/KVM virtual machine is created."
 
 echo ""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
@@ -48,6 +48,7 @@ echo "[To-Do] Hostname: ${VM_NAME}"
 echo "[To-Do] Check \"Install OpenSSH Server\""
 echo "[To-Do] RUN \"sudo sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config\""
 echo "[To-Do] RUN \"sudo systemctl enable ssh && sudo systemctl start ssh\""
+echo "[To-Do] RUN \"sudo passwd root\""
 echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
