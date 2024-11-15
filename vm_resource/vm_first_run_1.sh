@@ -1,13 +1,11 @@
 #!/bin/bash
 
 
-cd "$(dirname "$0")"
 
+VM_NAME="original-net-vm"
 ISO="ubuntu-24.04.1-live-server-arm64.iso"
-PRIVATE_KEY="vm.id_rsa"
-SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
+QCOW_PATH="$HOME/net_script/vm_resource/"
 
-# Functions
 
 
 echo "Enter the number of vCPUs:"
@@ -28,8 +26,6 @@ if [ ! -f "${ISO}" ]; then
 	wget -q -O ${ISO} "https://cdimage.ubuntu.com/releases/noble/release/ubuntu-24.04.1-live-server-arm64.iso"
 fi
 
-VM_NAME="original-net-vm"
-QCOW_PATH="$HOME/net_script/vm_resource/"
 
 echo "Creating Firecracker microVM..."
 sudo virt-install --name=${VM_NAME} \

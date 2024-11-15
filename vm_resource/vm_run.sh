@@ -14,13 +14,31 @@ sudo_prefix() {
 	echo ${SUDO_PW} | sudo -S "$@"
 }
 
+convert_to_mb() {
+    local input=${1}
+    local result
+
+	# e.g., 1G -> 1024
+    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
+        result=$(( ${BASH_REMATCH[1]} * 1024 ))
+	# e.g., 512m -> 512
+    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
+        result=${BASH_REMATCH[1]}
+    else
+        result=${input}
+    fi
+
+    echo "${result}"
+}
+
+
 update_resource_config() {
 	# ${1}: VM name
 	
 	local CONFIG=${1}_config.xml
 	sudo virsh dumpxml ${1} > ${CONFIG}
 	sudo sed -i 's/<vcpu placement="static">1<\/vcpu>/<vcpu placement="static">'"${CPU}"'<\/vcpu>/' ${CONFIG}
-	sudo sed -i 's/<memory unit="KiB">1048576<\/memory>/<memory unit="KiB">'"${MEMORY}"'<\/memory>/' ${CONFIG}
+	sudo sed -i 's/<memory unit="KiB">1048576<\/memory>/<memory unit="MiB">'"$(conver_to_mb ${MEMORY})"'<\/memory>/' ${CONFIG}
 	
 	sudo virsh define ${CONFIG}
 
@@ -55,6 +73,7 @@ EOF
 		sed -i 's/${ORIGINAL_HOSTNAME}/${3}/g' /etc/hosts
 		netplan apply
 	"
+	rm temp
 }
 
 # Get options
@@ -74,12 +93,6 @@ if [ -z "${CPU}" ] || [ -z "${MEMORY}" ] || [ -z "${VM_NUM}" ]; then
   exit 1
 fi
 
-# Check iso image file
-if [ ! -f "${ISO}" ]; then
-	echo "ISO image is missing. Downloading..."
-	wget -q -O ${ISO} "https://cdimage.ubuntu.com/releases/noble/release/ubuntu-24.04.1-live-server-arm64.iso"
-fi
-
 
 
 BASE_VM="original-net-vm"
@@ -90,7 +103,7 @@ for ((i=1; i<=${VM_NUM}; i++))
 do
 	VM_NAME=${VM_NAME_PREFIX}${i}
 	sudo virsh shutdown ${BASE_VM} > /dev/null 2>&1
-	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2 > /dev/null 2>&1
+	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
 
 	echo -e "\tVirtual machine is created."
 	update_resource_config ${VM_NAME} ${CPU}
