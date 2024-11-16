@@ -99,9 +99,6 @@ update_network_config() {
 	"
 }
 
-test() {
-	ssh -i vm.id_rsa root@192.168.122.22
-}
 
 
 
@@ -144,7 +141,7 @@ do
 	#echo -e "Resource configuration updated." 	
 
 	NEW_GUEST_IP="192.168.122.$((100 + ${i}))"
-	echo ${NEW_GUEST_IP} > net-vm-ip-list
+	echo ${NEW_GUEST_IP} >> net-vm-ip-list
 	#test
 	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
 	sudo virsh reboot ${VM_NAME}
