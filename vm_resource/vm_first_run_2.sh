@@ -8,7 +8,7 @@ IP=$(sudo virsh domifaddr ${VM_NAME} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
 PRIVATE_KEY="vm.id_rsa"
 SSH_OPTIONS="-q -o StrictHostKeyChecking=no -i ${PRIVATE_KEY}"
 
-
+echo ${IP} > "${VM_NAME}-ip"
 
 ssh-keygen -t rsa 
 

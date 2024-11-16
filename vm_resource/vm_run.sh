@@ -30,23 +30,43 @@ convert_to_kb() {
 }
 
 wait_for_vm_state() {
-	# ${1}: command
-	# ${2}: VM name
-	
-	if [[ ${1} == "start" ]]; then
-	    sudo virsh start ${2} 2> /dev/null
+	local target=${1}
+	local VM=${2}
+	while true; do
+		STATE=$(sudo virsh domstate ${VM})
+		if [[ ${STATE} == ${target} ]]; then
+			echo "${VM} is now ${target}."
+			break
+		fi
+		sleep 2
+	done
+}
 
-	    while ! sudo virsh domstate ${2} | grep -q "running"; do
-	        sleep 2 
-            done
-	
-	elif [[ ${1} == "shutdown" ]]; then
-	    sudo virsh shutdown ${2} 2> /dev/null
-	    
-	    while sudo virsh domstate ${2} | grep -q "running"; do
-	        sleep 2 
-            done
-	fi
+change_vm_state() {
+	# ${1}: command (e.g., start)
+	# ${2}: VM name
+	declare -A state_map=(
+	    [start]="running"
+	    [shutdown]="shut off"
+	)
+
+	sudo virsh $1 $2
+
+	target_state=${state_map[$1]}
+	while true; do
+		cur_state=$(sudo virsh domstate $2 2>/dev/null)
+
+		if [[ ${cur_state} == ${target_state} ]]; then
+		    echo "VM '$2' reached state '$target_state'."
+		    break
+		fi
+
+		echo "Current state: $cur_state. Waiting for '$target_state'..."
+		sudo virsh $1 $2
+		sleep 2
+    	done
+		
+
 }
 
 
@@ -60,38 +80,31 @@ update_resource_config() {
 	
 	sudo virsh define ${CONFIG}
 
-	wait_for_vm_state shutdown ${1}
-	wait_for_vm_state start ${1}
+	sudo virsh destroy ${1}
+	sudo virsh start ${1} && sleep 30
 }
 
 update_network_config() {
 	# ${1}: old guest IP
 	# ${2}: new geuset IP
 	# ${3}: new host name
-	
-	cat <<EOF > temp
-	network:
- 	  version: 2
-  	  renderer: networkd
-  	  ethernets:/
-    	    enp1s0:
-      	      dhcp4: no
-      	      addresses:
-                - ${2}/24
-              routes:
-                - to: default
-                  via: 192.168.122.1
-              nameservers:
-                addresses: [155.230.10.2, 8.8.8.8]"
-EOF
 
-	scp ${SSH_OPTIONS} temp ${USER}@${1}:/etc/netplan/50-cloud-init.yaml
-	ssh ${SSH_OPTIONS} ${USER}@${1} "
+	sed -i "s/[0-9\.]\+\/24/"${2}"\/24/g" 50-cloud-init.yaml	
+	
+
+	scp ${SSH_OPTIONS} 50-cloud-init.yaml ${USER}@${1}:/etc/netplan/
+	ssh ${SSH_OPTIONS} ${USER}@${1} " 
 		sed -i 's/${ORIGINAL_HOSTNAME}/${3}/g' /etc/hosts
-		netplan apply
+		hostnamectl set-hostname ${3}
 	"
-	#rm temp
 }
+
+test() {
+	ssh -i vm.id_rsa root@192.168.122.22
+}
+
+
+
 
 # Get options
 while getopts ":c:m:n:" opt; do
@@ -122,19 +135,20 @@ echo "Remove existing VMs and resources except for orginal VM."
 
 for ((i=1; i<=${VM_NUM}; i++))
 do
-	wait_for_vm_state start ${BASE_VM}
-	OLD_GUEST_IP=$(sudo virsh domifaddr ${BASE_VM} | awk '/ipv4/ {print $4}' | cut -d'/' -f1)
+	OLD_GUEST_IP=$(cat "${BASE_VM}-ip")
 	echo ${OLD_GUEST_IP}
 	VM_NAME=${VM_NAME_PREFIX}${i}
-	wait_for_vm_state shutdown ${BASE_VM}
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} --file ${QCOW_PATH}${VM_NAME}.qcow2
-
-	update_resource_config ${VM_NAME} ${CPU}
-	echo -e "Resource configuration updated." 
+	sudo virsh start ${VM_NAME} && sleep 60
+	#update_resource_config ${VM_NAME} ${CPU}
+	#echo -e "Resource configuration updated." 	
 
 	NEW_GUEST_IP="192.168.122.$((100 + ${i}))"
-	echo ${NEW_GUEST_IP}
+	echo ${NEW_GUEST_IP} > net-vm-ip-list
+	#test
 	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
-	# ip, mac, gateway, ... 
-
+	sudo virsh reboot ${VM_NAME}
 done
+
+# shutdown이 너무 오래 걸림
+#
