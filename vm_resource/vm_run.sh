@@ -58,15 +58,16 @@ update_resource_config() {
 
 wait_for_boot() {
     # $1: VM IP
-	#while ! nc -z $1 22 2> /dev/null; do
-		#echo "Waiting for VM to boot..."
-		#sleep 10
-	#done
-	#echo "VM is booted!"
+# When rebooting, there's some difference.
+#	while ! nc -z $1 22 2> /dev/null; do
+#		echo "Waiting for VM to boot..."
+#		sleep 10
+#	done
+#	echo "VM is booted!"
 
-	while ! ssh -q ${USER}@$1 "exit 0"; do
+	while ! ssh ${USER}@$1 "systemctl is-system-running" > /dev/null 2>&1; do
 		echo "Waiting for SSH service to be ready..."
-		sleep 2
+		sleep 10
 	done
 	echo "VM is booted!"
 }
@@ -117,7 +118,8 @@ do
 	
 	echo "Update VM's network configuration."
 	update_network_config ${OLD_GUEST_IP} ${NEW_GUEST_IP} ${VM_NAME}
-
-	sudo virsh reboot ${VM_NAME} && wait_for_boot ${OLD_GUEST_IP}
+	
+	echo "VM is being rebooted..."
+	sudo virsh reboot ${VM_NAME} > /dev/null && wait_for_boot ${NEW_GUEST_IP}
 done
 

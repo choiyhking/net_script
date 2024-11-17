@@ -59,23 +59,23 @@ if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
 
-	fc_resource/fc_run.sh -c ${CPU} -m 4096 -n 1
-    echo "Firecracker microVM is running."
+	vm_resource/vm_run.sh -c ${CPU} -m 4G -n 1
+    echo "QEMU/KVM virtual machine is running."
 
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
-		ssh ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
+		ssh ${SSH_OPTIONS}${VM_IP} "cd ${VM_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
 
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
-				cd ${FC_WORKING_DIR} && 
+				cd ${VM_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" 2> /dev/null
 
@@ -91,23 +91,23 @@ elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 
 	
-	fc_resource/fc_run.sh -c 4 -m $(convert_to_mb ${MEMORY}) -n 1
-    echo "Firecracker microVM is running."
+	vm_resource/vm_run.sh -c 4 -m ${MEMORY} -n 1
+    echo "QEMU/KVM virtual machine is running."
 	
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
-		ssh ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
+		ssh ${SSH_OPTIONS}${VM_IP} "cd ${VM_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
 
 		for i in $(seq 1 ${REPEAT})
         do
 			echo -e "\tRepeat #${i}..."
 			do_pidstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
-				cd ${FC_WORKING_DIR} && 
+				cd ${VM_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wiat" 2> /dev/null
 
@@ -122,10 +122,10 @@ elif [ ! -z ${MEMORY} ]; then
 elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
-	fc_resource/fc_run.sh -c 4 -m 4096 -n 1
-    echo "Firecracker microVM is running."
+	vm_resource/vm_run.sh -c 4 -m 4G -n 1
+    echo "QEMU/KVM virtual machine is running."
 
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(cat vm_resource/net-vm-ip-list)
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 
@@ -135,7 +135,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		echo -e "\tRepeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
-				cd '"${FC_WORKING_DIR}"'
+				cd '"${VM_WORKING_DIR}"'
 				[ ! -s '"${RESULT_FILE}"'_{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
                 netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{} &
 				wait
@@ -147,8 +147,8 @@ elif [ ! -z ${STREAM_NUM} ]; then
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
-	fc_resource/fc_run.sh -c 1 -m 512 -n ${INSTANCE_NUM}
-    echo "Firecracker microVMs are running."
+	vm_resource/vm_run.sh -c 1 -m 512m -n ${INSTANCE_NUM}
+    echo "QEMU/KVM virtual machine are running."
 
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
@@ -157,9 +157,9 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo -e "\tRepeat ${i}..."
-		awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
+		cat vm_resource/net-vm-ip-list | \
 			xargs -I {} -P${INSTANCE_NUM} ssh ${SSH_OPTIONS}{} "
-				cd '"${FC_WORKING_DIR}"'
+				cd '"${VM_WORKING_DIR}"'
 				[ ! -s '"${RESULT_FILE}"'_"VM"{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_"VM"{} > /dev/null
 				netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_"VM"{} &
 				wait" > /dev/null 2>&1
@@ -170,7 +170,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 		
-	vm_resource/vm_run.sh -c 1 -m 512m -n 1
+	vm_resource/vm_run.sh -c 1 -m 2G -n 1
 	echo "QEMU/KVM virtual machine is running."
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
@@ -193,14 +193,14 @@ else
 		done
 
 		echo -e "\tMessage size[${M_SIZE}B] finished."
-	done
+done
 fi
 
 echo "Copy results from QEMU/KVM virtual machine to host."
 cat vm_resource/net-vm-ip-list | \
 	xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${VM_WORKING_DIR}${RESULT_DIR} net_result/vm/
 
-echo "Remove existing Firecracker resources."
+echo "Remove existing VM resources."
 vm_resource/vm_clean.sh
 
 echo "All experiments are completed !!"
