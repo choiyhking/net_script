@@ -4,6 +4,7 @@
 
 VM_NAME="original-net-vm"
 ISO="ubuntu-24.04.1-live-server-arm64.iso"
+OS_VARIANT="ubuntu22.04"
 QCOW_PATH="$HOME/net_script/vm_resource/"
 
 
@@ -14,7 +15,11 @@ read -p ">> " CPU
 echo "Enter the size of memory (minimum is 2048 MiB):"
 read -p ">> " MEMORY
 
- 
+echo "Enter the size of disk(GB) (e.g., 10):"
+read -p ">> " DISK
+
+
+
 echo "Remove all existing VMs and resources."
 sudo virsh list --all --name | xargs -I {} sudo virsh shutdown {} 2> /dev/null
 sudo virsh list --all --name | xargs -I {} sudo virsh undefine {} --nvram --remove-all-storage 2> /dev/null
@@ -27,16 +32,16 @@ if [ ! -f "${ISO}" ]; then
 fi
 
 
-echo "Creating virtual machine..."
+echo "Creating QEMU/KVM virtual machine..."
 sudo virt-install --name=${VM_NAME} \
 	--vcpus=${CPU} \
 	--memory=${MEMORY} \
 	--cdrom=${ISO} \
-	--os-variant=ubuntu22.04 \
-	--disk path=${QCOW_PATH}${VM_NAME}.qcow2,size=10,format=qcow2 \
+	--os-variant=${OS_VARIANT} \
+	--disk path=${QCOW_PATH}${VM_NAME}.qcow2,size=${DISK},format=qcow2 \
 	--noautoconsole
 
-echo -e "QEMU/KVM virtual machine is created."
+echo "QEMU/KVM virtual machine is created."
 
 echo ""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
@@ -52,5 +57,3 @@ echo "[To-Do] RUN \"sudo passwd root\""
 echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
-
-

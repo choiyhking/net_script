@@ -18,7 +18,6 @@ convert_to_kb() {
 
     echo "${result}"
 }
-# ${1}: VM name
 
 
 
@@ -49,4 +48,4 @@ sudo sed -i "s/<memory unit='KiB'>[0-9]\+<\/memory>/<memory unit='KiB'>"$(conver
 sudo virsh define ${CONFIG}
 
 sudo virsh destroy ${VM_NAME}
-sudo virsh start ${NAME} && sleep 60
+sudo virsh start ${NAME} && sleep 100
