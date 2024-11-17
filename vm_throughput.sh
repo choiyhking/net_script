@@ -5,19 +5,19 @@ SERVER_IP="192.168.51.232"
 #M_SIZES=(32 64 128 256 512 1024) # array
 M_SIZES=(32 64) # array
 TIME="20" # netperf test time (sec)
-PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
+PRIVATE_KEY="vm_resource/vm.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
-RESULT_DIR="net_result/fc/throughput/"
+RESULT_DIR="net_result/vm/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
-FC_WORKING_DIR="/root/net_script/"
+VM_WORKING_DIR="/root/net_script/"
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
 
 # Functions
 do_pidstat() {
 	local RESULT_FILE=${1}
-	(sleep 1; pidstat -p $(pgrep [f]irecracker) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
+	(sleep 1; pidstat -p $(pgrep [q]emu-system) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
 
 convert_to_mb() {
@@ -43,8 +43,8 @@ convert_to_mb() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing Firecracker resources."
-fc_resource/fc_clean.sh
+echo "Remove existing VM resources."
+vm_resource/vm_clean.sh
 
 # Get options
 while getopts ":r:c:m:s:n:" opt; do
@@ -187,25 +187,24 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 # <DEFAULT> option
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
-
 		
-	fc_resource/fc_run.sh -c 1 -m 512 -n 1
-	echo "Firecracker microVM is running."
-	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	vm_resource/vm_run.sh -n 1
+	vm_resource/update_vm_resource.sh -n "net-vm-1" -c 1 -m 512m
+	echo "QEMU/KVM virtual machine is running."
+	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
-		ssh ${SSH_OPTIONS}${VM_IP} "cd ${FC_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
+		ssh ${SSH_OPTIONS}${VM_IP} "cd ${VM_WORKING_DIR} && echo '${HEADER}' | tee ${RESULT_FILE} > /dev/null" 2> /dev/null
 
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat ${i}..."
 			do_pidstat ${RESULT_FILE}
 			ssh ${SSH_OPTIONS}${VM_IP} "
-				cd ${FC_WORKING_DIR} && 
+				cd ${VM_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
 			kill $(pgrep [p]idstat) > /dev/null
@@ -218,20 +217,11 @@ fi
 
 # Copy all result files from Firecracker microVM to host
 echo "Copy results from Firecracker microVM to host."
-#if [ ! -z ${INSTANCE_NUM} ]; then
-#	for i in $(seq 1 ${INSTANCE_NUM})
-#	do
-#		temp_vm_ip=$(sed -n "/^VM 2:/,/^$/ { /GUEST IP:/ s/.*: *//p }" fc_resource/fc_info_list)
-#		sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
-#	done
-#else
-#	sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
-#fi
 
-awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
-		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
+cat vm_resource/net-vm-ip-list | \
+	xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${VM_WORKING_DIR}${RESULT_DIR} net_result/vm/
 
 echo "Remove existing Firecracker resources."
-fc_resource/fc_clean.sh
+vm_resource/vm_clean.sh
 
 echo "All experiments are completed !!"

@@ -104,10 +104,8 @@ update_network_config() {
 
 
 # Get options
-while getopts ":c:m:n:" opt; do
+while getopts "n:" opt; do
   case $opt in
-    c) CPU=${OPTARG} ;;
-    m) MEMORY=${OPTARG} ;;
     n) VM_NUM=${OPTARG} ;;
     \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
     :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
@@ -115,8 +113,8 @@ while getopts ":c:m:n:" opt; do
 done
 
 # Check if all required options are provided
-if [ -z "${CPU}" ] || [ -z "${MEMORY}" ] || [ -z "${VM_NUM}" ]; then
-  echo "Error: Options -c(CPU), -m(Memory), and -n(VM #) are required." >&2
+if [ -z "${VM_NUM}" ]; then
+  echo "Error: Options -n(VM #) is required." >&2
   exit 1
 fi
 
