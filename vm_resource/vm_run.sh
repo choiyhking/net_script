@@ -58,18 +58,17 @@ update_resource_config() {
 
 wait_for_boot() {
     # $1: VM IP
-# When rebooting, there's some difference.
-#	while ! nc -z $1 22 2> /dev/null; do
-#		echo "Waiting for VM to boot..."
-#		sleep 10
-#	done
-#	echo "VM is booted!"
-
-	while ! ssh ${USER}@$1 "systemctl is-system-running" > /dev/null 2>&1; do
-		echo "Waiting for SSH service to be ready..."
-		sleep 10
+	
+	while true; do
+		output=$(ssh ${SSH_OPTIONS} ${USER}@$1 "systemctl is-system-running" 2> /dev/null)
+		if [[ ${output} != "running" ]]; then
+			echo "Waiting for SSH service to be ready..."
+			sleep 10
+		else
+			echo "VM is booted!"
+			break
+		fi
 	done
-	echo "VM is booted!"
 }
 
 # Get options

@@ -36,7 +36,9 @@ echo "***********************************"
 echo "**** START <MEMORY> EXPERIMENT ****"
 echo "***********************************"
 # Memory
-for arg in 512m 1G 2G 4G 6G
+if [[ ${PLATFORM} == "vm" ]]; then ARGS="2G 4G 6G"; else ARGS="512m 1G 2G 4G 6G"; fi
+
+for arg in ${ARGS}
 do
 	echo "MEMORY: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -m "${arg}"
@@ -60,7 +62,9 @@ echo "****************************************"
 echo "**** START <CONCURRENCY> EXPERIMENT ****"
 echo "****************************************"
 # Concurrency
-for arg in 1 4 8
+if [[ ${PLATFORM} == "vm" ]]; then ARGS="1 2 3"; else ARGS="1 4 8"; fi
+
+for arg in ${ARGS}
 do
 	echo "CONCURRENCY: ${arg}"
 	./${PLATFORM}_throughput.sh -r "${REPEAT}" -n "${arg}"

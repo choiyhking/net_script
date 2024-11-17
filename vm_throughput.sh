@@ -147,8 +147,8 @@ elif [ ! -z ${STREAM_NUM} ]; then
 elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
-	vm_resource/vm_run.sh -c 1 -m 512m -n ${INSTANCE_NUM}
-    echo "QEMU/KVM virtual machine are running."
+	vm_resource/vm_run.sh -c 1 -m 2G -n ${INSTANCE_NUM}
+    echo "QEMU/KVM virtual machines are running."
 
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
@@ -173,6 +173,7 @@ else
 	vm_resource/vm_run.sh -c 1 -m 2G -n 1
 	echo "QEMU/KVM virtual machine is running."
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
+
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
