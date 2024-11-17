@@ -87,6 +87,10 @@ fi
 echo "Remove existing VMs and resources except for orginal VM."
 ./vm_clean.sh
 
+# Ubuntu 24.04 System Requirements
+# Minimum RAM: 1GB, Suggested: 3GB
+# Minimum storage: 5GB, Suggested: 25GB
+
 for ((i=1; i<=${VM_NUM}; i++))
 do
 	echo "Creating VM #${i}..."
@@ -110,3 +114,4 @@ do
 
 	sudo virsh reboot ${VM_NAME} && wait_for_boot ${OLD_GUEST_IP}
 done
+
