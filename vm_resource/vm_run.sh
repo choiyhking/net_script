@@ -58,11 +58,17 @@ update_resource_config() {
 
 wait_for_boot() {
     # $1: VM IP
-    while ! nc -z $1 22 2> /dev/null; do
-        echo "Waiting for VM to boot..."
- 	sleep 10
-    done
-    echo "VM is booted!"
+	#while ! nc -z $1 22 2> /dev/null; do
+		#echo "Waiting for VM to boot..."
+		#sleep 10
+	#done
+	#echo "VM is booted!"
+
+	while ! ssh -q ${USER}@$1 "exit 0"; do
+		echo "Waiting for SSH service to be ready..."
+		sleep 2
+	done
+	echo "VM is booted!"
 }
 
 # Get options
