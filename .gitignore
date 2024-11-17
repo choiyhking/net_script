@@ -4,5 +4,5 @@ fc_resource/*.ext4*
 vm_resource/*.iso*
 vm_resource/*.qcow2*
 vm_resource/*.xml*
-#vm_resource/net-vm-ip-list
-#vm_resource/original-net-vm-ip
+vm_resource/net-vm-ip-list
+vm_resource/original-net-vm-ip

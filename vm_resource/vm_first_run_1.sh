@@ -54,6 +54,7 @@ echo "[To-Do] Check \"Install OpenSSH Server\""
 echo "[To-Do] RUN \"sudo sed -i '/^#PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config\""
 echo "[To-Do] RUN \"sudo systemctl enable ssh && sudo systemctl start ssh\""
 echo "[To-Do] RUN \"sudo passwd root\""
+echo "[To-Do] If you don't want to use swap, RUN \"echo \"vm.swappiness=0\" | sudo tee -a /etc/sysctl.conf\""
 echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	

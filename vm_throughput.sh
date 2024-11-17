@@ -20,24 +20,6 @@ do_pidstat() {
 	(sleep 1; pidstat -p $(pgrep [q]emu-system) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
 
-convert_to_mb() {
-    local input=${1}
-    local result
-
-	# e.g., 1G -> 1024
-    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 ))
-	# e.g., 512m -> 512
-    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-        result=${BASH_REMATCH[1]}
-    else
-        result=${input}
-    fi
-
-    echo "${result}"
-}
-
-
 ###############
 # Preparation #
 ###############
@@ -188,8 +170,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 		
-	vm_resource/vm_run.sh -n 1
-	vm_resource/update_vm_resource.sh -n "net-vm-1" -c 1 -m 512m
+	vm_resource/vm_run.sh -c 1 -m 512m -n 1
 	echo "QEMU/KVM virtual machine is running."
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
@@ -215,9 +196,7 @@ else
 	done
 fi
 
-# Copy all result files from Firecracker microVM to host
-echo "Copy results from Firecracker microVM to host."
-
+echo "Copy results from QEMU/KVM virtual machine to host."
 cat vm_resource/net-vm-ip-list | \
 	xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${VM_WORKING_DIR}${RESULT_DIR} net_result/vm/
 
