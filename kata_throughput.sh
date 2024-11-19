@@ -16,6 +16,7 @@ HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Tim
 
 
 # Functions
+# process: qemu-system-aarch64
 do_pidstat() {
 	local RESULT_FILE=${1}
 	(sleep 1; pidstat -p $(pgrep [q]emu) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
@@ -91,7 +92,6 @@ fi
 #####################
 # Start Experiments #
 #####################
-#echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -221,7 +221,7 @@ else
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
 	# (CPU, Memory)
-	update_resource_config "1" "512m"
+	update_resource_config "1" "4G"
 		
 	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		--runtime=io.containerd.kata.v2 \
@@ -251,7 +251,7 @@ else
 	done
 fi
 
-# Copy all result files from Kata Container to host
+echo "Copy all results from Kata Container to host."
 sudo docker ps -q --filter "name=${CONTAINER_NAME}" | \
 	xargs -I {} sudo docker cp {}:"/root/net_script/net_result/kata/throughput" "net_result/kata"
 

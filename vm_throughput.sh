@@ -2,8 +2,7 @@
 
 
 SERVER_IP="192.168.51.232"
-#M_SIZES=(32 64 128 256 512 1024) # array
-M_SIZES=(32 64) # array
+M_SIZES=(32 64 128 256 512 1024) # array
 TIME="20" # netperf test time (sec)
 PRIVATE_KEY="vm_resource/vm.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
@@ -15,17 +14,20 @@ HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Tim
 
 
 # Functions
+# process: qemu-system-aarch64
 do_pidstat() {
 	local RESULT_FILE=${1}
 	(sleep 1; pidstat -p $(pgrep [q]emu-system) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
 }
+
+
 
 ###############
 # Preparation #
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing VM resources."
+echo "Remove existing VM resources except for original VM."
 vm_resource/vm_clean.sh
 
 # Get options
@@ -53,14 +55,13 @@ fi
 #####################
 # Start Experiments #
 #####################
-#echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
 
 	vm_resource/vm_run.sh -c ${CPU} -m 4G -n 1
-    echo "QEMU/KVM virtual machine is running."
+    echo "VM is running."
 
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
@@ -92,7 +93,7 @@ elif [ ! -z ${MEMORY} ]; then
 
 	
 	vm_resource/vm_run.sh -c 4 -m ${MEMORY} -n 1
-    echo "QEMU/KVM virtual machine is running."
+    echo "VM is running."
 	
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
@@ -123,7 +124,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	sudo rm ${RESULT_DIR}/*stream${STREAM_NUM}* > /dev/null 2>&1
 	
 	vm_resource/vm_run.sh -c 4 -m 4G -n 1
-    echo "QEMU/KVM virtual machine is running."
+    echo "VM is running."
 
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 
@@ -148,8 +149,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	sudo rm ${RESULT_DIR}*concurrency${INSTANCE_NUM}* > /dev/null 2>&1
 
 	vm_resource/vm_run.sh -c 1 -m 2G -n ${INSTANCE_NUM}
-    echo "QEMU/KVM virtual machines are running."
-
+    echo "VMs are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
 	
@@ -170,8 +170,8 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 		
-	vm_resource/vm_run.sh -c 1 -m 2G -n 1
-	echo "QEMU/KVM virtual machine is running."
+	vm_resource/vm_run.sh -c 1 -m 4G -n 1
+	echo "VM is running."
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 
 	
@@ -197,11 +197,11 @@ else
 done
 fi
 
-echo "Copy results from QEMU/KVM virtual machine to host."
+echo "Copy results from VM to host."
 cat vm_resource/net-vm-ip-list | \
 	xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${VM_WORKING_DIR}${RESULT_DIR} net_result/vm/
 
-echo "Remove existing VM resources."
+echo "Remove existing VM resources except for original VM."
 vm_resource/vm_clean.sh
 
 echo "All experiments are completed !!"

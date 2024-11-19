@@ -4,6 +4,7 @@
 # Move to current script's directory
 cd "$(dirname "$0")"
 
+# Remove existing VMs except for original VM
 for VM in $(sudo virsh list --all --name | grep ^net-vm-); do
     sudo virsh destroy ${VM} 2> /dev/null
     sudo virsh undefine ${VM} --remove-all-storage --nvram 2> /dev/null
@@ -19,4 +20,3 @@ sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 # 1: delete page cache
 # 2: delete directory entry and inode cache
 # 3: delete page cache, directory entry, inode cache
-

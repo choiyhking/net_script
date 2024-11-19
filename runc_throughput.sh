@@ -14,6 +14,7 @@ MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result" # host_path
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
 # Functions
+# process: netperf
 do_pidstat() {
 	local RESULT_FILE=${1}
 	# Sleep to give netperf time to start 
@@ -64,7 +65,6 @@ fi
 #####################
 # Start Experiments #
 #####################
-echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -78,6 +78,7 @@ if [ ! -z ${CPU} ]; then
 		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -101,11 +102,13 @@ elif [ ! -z ${MEMORY} ]; then
 	
 	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
+		--cpus=4 \
 		--memory=${MEMORY} \
 		--memory-swap=${MEMORY} \
 		${IMAGE_NAME}
 	echo "Container[runc] is running"
 	
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -137,6 +140,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	
+	echo "Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo -e "\tRepeat ${i}..."
@@ -167,6 +171,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	echo "Containers[runc] are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
+	echo "Start experiments..."
 
 	for i in $(seq 1 ${REPEAT})
 	do
@@ -187,12 +192,13 @@ else
 
 	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
-		--cpus=2 \
+		--cpus=1 \
 		--memory=4G \
 		--memory-swap=4G \
 		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"

@@ -2,8 +2,7 @@
 
 
 SERVER_IP="192.168.51.232"
-#M_SIZES=(32 64 128 256 512 1024) # array
-M_SIZES=(32 64) # array
+M_SIZES=(32 64 128 256 512 1024) # array
 TIME="20" # netperf test time (sec)
 PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
@@ -15,6 +14,7 @@ HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Tim
 
 
 # Functions
+# process: firecracker
 do_pidstat() {
 	local RESULT_FILE=${1}
 	(sleep 1; pidstat -p $(pgrep [f]irecracker) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
@@ -71,7 +71,6 @@ fi
 #####################
 # Start Experiments #
 #####################
-#echo "Start experiments..."
 # Modify <CPU> option
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
@@ -189,7 +188,7 @@ else
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
 		
-	fc_resource/fc_run.sh -c 1 -m 512 -n 1
+	fc_resource/fc_run.sh -c 1 -m 4096 -n 1
 	echo "Firecracker microVM is running."
 	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
 	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
@@ -216,18 +215,7 @@ else
 	done
 fi
 
-# Copy all result files from Firecracker microVM to host
 echo "Copy results from Firecracker microVM to host."
-#if [ ! -z ${INSTANCE_NUM} ]; then
-#	for i in $(seq 1 ${INSTANCE_NUM})
-#	do
-#		temp_vm_ip=$(sed -n "/^VM 2:/,/^$/ { /GUEST IP:/ s/.*: *//p }" fc_resource/fc_info_list)
-#		sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
-#	done
-#else
-#	sudo scp -q -r ${SSH_OPTIONS}${VM_IP}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
-#fi
-
 awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
 		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 

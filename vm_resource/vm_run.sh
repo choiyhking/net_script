@@ -34,7 +34,7 @@ convert_to_kb() {
     if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
         result=$(( ${BASH_REMATCH[1]} * 1024 * 1024))
     elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-	result=$(( ${BASH_REMATCH[1]} * 1024 ))
+	i	result=$(( ${BASH_REMATCH[1]} * 1024 ))
     else
         result=${input}
     fi
@@ -65,11 +65,13 @@ wait_for_boot() {
 			echo "Waiting for SSH service to be ready..."
 			sleep 10
 		else
-			echo "VM is booted!"
+			echo "VM is booted !"
 			break
 		fi
 	done
 }
+
+
 
 # Get options
 while getopts "c:m:n:" opt; do
@@ -109,8 +111,8 @@ do
 	
 	echo "Update VM's resource configuration."
 	update_resource_config ${VM_NAME}
-	
 	sudo virsh start ${VM_NAME} && wait_for_boot ${OLD_GUEST_IP}
+
 	# Guest IP starts from 192.168.122.101
 	NEW_GUEST_IP="192.168.122.$((100 + ${i}))"
 	echo ${NEW_GUEST_IP} >> net-vm-ip-list
@@ -121,4 +123,3 @@ do
 	echo "VM is being rebooted..."
 	sudo virsh reboot ${VM_NAME} > /dev/null && wait_for_boot ${NEW_GUEST_IP}
 done
-

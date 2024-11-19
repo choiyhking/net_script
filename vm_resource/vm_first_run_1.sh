@@ -15,7 +15,7 @@ read -p ">> " CPU
 echo "Enter the size of memory (minimum is 2048 MiB):"
 read -p ">> " MEMORY
 
-echo "Enter the size of disk(GB) (e.g., 10):"
+echo "Enter the size(GB) of disk (e.g., 10):"
 read -p ">> " DISK
 
 
@@ -41,7 +41,7 @@ sudo virt-install --name=${VM_NAME} \
 	--disk path=${QCOW_PATH}${VM_NAME}.qcow2,size=${DISK},format=qcow2 \
 	--noautoconsole
 
-echo "QEMU/KVM virtual machine is created."
+echo "VM is created !!"
 
 echo ""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
