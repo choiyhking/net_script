@@ -27,8 +27,8 @@ do_pidstat() {
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-echo "Remove existing VM resources except for original VM."
-vm_resource/vm_clean.sh
+#echo "Remove existing VM resources except for original VM."
+#vm_resource/vm_clean.sh
 
 # Get options
 while getopts ":r:c:m:s:n:" opt; do
