@@ -102,6 +102,10 @@ truncate -s ${ROOTFS_SIZE} ${ROOTFS} > /dev/null 2>&1
 e2fsck -f ${ROOTFS} > /dev/null 2>&1
 resize2fs ${ROOTFS} > /dev/null 2>&1
 
+# Permissions 0644 for 'ubuntu-22.04.id_rsa' are too open.
+# It is required that your private key files are NOT accessible by others.
+# This private key will be ignored.
+chmod 600 ubuntu-22.04.id_rsa
 
 for ((i=1; i<=${VM_NUM}; i++))
 do
