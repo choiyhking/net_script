@@ -87,7 +87,7 @@ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
 sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
-sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADEi > /dev/null 2>&1
+sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
 sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 
