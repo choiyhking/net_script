@@ -210,10 +210,11 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 		echo -e "\tRepeat ${i}..."
 		sudo docker ps -q --filter name=${CONTAINER_NAME} | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} sh -c '
-				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
-					echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
+				if [ ! -s "'"${RESULT_FILE}"'_{}" ]; then
+					echo "'"${HEADER}"'" | tee "'"${RESULT_FILE}"'_{}" > /dev/null
 				fi
-			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
+				netperf -H "'"${SERVER_IP}"'" -l "'"${TIME}"'" | tail -n 1 >> "'"${RESULT_FILE}"'_{}"
+			'
 		sleep 3
 	done
 
