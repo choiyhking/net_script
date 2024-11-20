@@ -10,8 +10,9 @@ result_path=$HOME/net_script/net_result_processed/${platform}/throughput/
 mkdir -p ${result_path}
 
 
-pushd ${path}
+pushd ${path} > /dev/null
 
+echo $(pwd)
 
 # Example of netperf result
 # Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)
@@ -19,7 +20,7 @@ pushd ${path}
 for file in $(ls | grep -v "pidstat")
 do
 	echo ${file}
-	awk '{ print $5 }' > ${result_path}${file}
+	awk '{ print $5 }' ${file} > ${result_path}${file}
 done
 
 # Example of pidstat result
@@ -36,4 +37,4 @@ done
 
 
 
-popd
+popd > /dev/null
