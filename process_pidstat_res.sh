@@ -2,12 +2,12 @@
 
 
 echo "Select the virtualization platform."
-read ">> " platform
+read -p ">> " platform
 
 path=$HOME/net_script/net_result/${platform}/throughput/
-processed_path=$HOME/net_script/processed_net_result/${platform}/throughput/
+result_path=$HOME/net_script/net_result_processed/${platform}/throughput/
 
-mkdir -p ${processed_path}
+mkdir -p ${result_path}
 
 
 pushd ${path}
@@ -19,7 +19,7 @@ pushd ${path}
 for file in $(ls | grep -v "pidstat")
 do
 	echo ${file}
-	awk '{ print $5 }' > ${processed_path}${file}
+	awk '{ print $5 }' > ${result_path}${file}
 done
 
 # Example of pidstat result
@@ -31,7 +31,7 @@ done
 for file in $(ls *pidstat)
 do
 	echo ${file}
-	grep -v '^Linux' ${file} | awk '{ $2=$3=$4=""; print }' > ${processed_path}${file}
+	grep -v '^Linux' ${file} | awk '{ $2=$3=$4=""; print }' > ${result_path}${file}
 done
 
 
