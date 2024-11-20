@@ -20,7 +20,7 @@ echo $(pwd)
 for file in $(ls | grep -v "pidstat")
 do
 	echo ${file}
-	awk '{ print $5 }' ${file} > ${result_path}${file}
+	awk '{ print $5 }' ${file} > ${result_path}${file}.txt
 done
 
 # Example of pidstat result
@@ -32,7 +32,7 @@ done
 for file in $(ls *pidstat)
 do
 	echo ${file}
-	grep -v '^Linux' ${file} | awk '{ $2=$3=$4=""; print }' > ${result_path}${file}
+	grep -v '^Linux' ${file} | awk '{ $2=$3=$4=""; print }' > ${result_path}${file}.txt
 done
 
 
