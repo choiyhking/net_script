@@ -178,10 +178,11 @@ elif [ ! -z ${STREAM_NUM} ]; then
 		echo -e "\tRepeat ${i}..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} sh -c '
-				if [ ! -s '"${RESULT_FILE}"'_{} ]; then
-					echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_{} > /dev/null
+				if [ ! -s "'"${RESULT_FILE}"'_{}" ]; then
+					echo "'"${HEADER}"'" | tee "'"${RESULT_FILE}"'_{}" > /dev/null
 				fi
-			netperf -H '"${SERVER_IP}"' -l '"${TIME}"' | tail -n 1 >> '"${RESULT_FILE}"'_{}'
+				netperf -H "'"${SERVER_IP}"'" -l "'"${TIME}"'" | tail -n 1 >> "'"${RESULT_FILE}"'_{}"
+			'
 		sleep 3
 	done
 
