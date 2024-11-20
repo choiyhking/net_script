@@ -1,8 +1,12 @@
 #!/bin/bash
 
 
+
+echo "Select the virtualization platform."
+read ">> " platform
+
 # $1: virtualization platform
-path=net_result/$1/throughput/
+path=$HOME/net_result/${platform}/throughput/
 pushd ${path}
 
 for file in $(ls *pidstat)
