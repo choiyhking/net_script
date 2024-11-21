@@ -36,8 +36,8 @@ OPTS=("default" \
 for platform in ${PLATFORMS[@]}
 do
 	echo "Platform: ${platform}"
-	path=net_result/${platform}/throughput/
-	res_path=filtered_net_result/${platform}/throughput/
+	path=$HOME/net_script/net_result/${platform}/throughput/
+	res_path=$HOME/net_script/filtered_net_result/${platform}/throughput/
 
 	mkdir -p ${res_path}
 
