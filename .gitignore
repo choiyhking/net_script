@@ -1,5 +1,5 @@
 net_result/
-net_result_processed/
+filtered_net_result/
 fc_resource/*.ext4*
 vm_resource/*.iso*
 vm_resource/*.qcow2*
