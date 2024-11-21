@@ -32,6 +32,8 @@ OPTS=("default" \
 	  "stream1" "stream3" "stream5" "stream10" \
 	  "concurrency1" "concurrency2" "concurrency3" "concurrency4" "concurrency8")
 
+echo "Remove existing results."
+sudo rm -rf filtered_net_result
 
 for platform in ${PLATFORMS[@]}
 do
