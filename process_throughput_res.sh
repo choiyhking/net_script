@@ -5,6 +5,7 @@
 do_netperf_process() {
 	# $1: file
 	# $2: dest
+
 	awk 'NR > 1 {printf "%s\t", $5} END {print ""}' $1 >> $2
 }
 
@@ -12,6 +13,7 @@ do_pidstat_process() {
 	# $1: file
 	# $2: dest
 	# 5th: %usr, 6th: %system, 7th: %guest, 8th: %wait, 9th: %CPU
+	
 	awk '!/^Linux/ && !/UID/ && NF { 
         for (i=5; i<=9; i++) sum[i]+=$i; 
         count++ 
@@ -24,6 +26,9 @@ do_pidstat_process() {
 }
 
 
+
+
+
 PLATFORMS=("runc" "kata" "fc" "vm")
 
 OPTS=("default" \
@@ -32,7 +37,7 @@ OPTS=("default" \
 	  "stream1" "stream3" "stream5" "stream10" \
 	  "concurrency1" "concurrency2" "concurrency3" "concurrency4" "concurrency8")
 
-echo "Remove existing results."
+echo "Remove existing filtered results."
 sudo rm -rf filtered_net_result
 
 for platform in ${PLATFORMS[@]}
