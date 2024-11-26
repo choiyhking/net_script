@@ -1,11 +1,12 @@
 #!/bin/bash
 
 
+source ./common_vars.sh
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu"
-SERVER_IP="192.168.51.232"
-M_SIZES=(32 64 128 256 512 1024) # array
-TIME="20" # netperf test time (sec)
+#SERVER_IP="192.168.51.232"
+#M_SIZES=(32 64 128 256 512 1024) # array
+#TIME="20" # netperf test time (sec)
 
 
 RESULT_DIR="net_result/runc/throughput/"
@@ -19,7 +20,6 @@ do_pidstat() {
 	local RESULT_FILE=${1}
 	# Sleep to give netperf time to start 
 	# Actually, it doesn't monitor whole CPU overhead of container. Only "netperf process" in the contianer.
-	# Permission denied -> sudo tee 
 	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) & 
 	# Background execution
 }
@@ -69,7 +69,7 @@ fi
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
-	# Set memory size with half of physical memory
+	# Set memory with the half size of host physical memory
 	sudo docker run -d -q --name ${CONTAINER_NAME} \
 		-v ${MOUNT_PATH} \
 		--cpus=${CPU} \

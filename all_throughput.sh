@@ -1,12 +1,11 @@
 #!/bin/bash
 
 
+echo "Select the virtualization platform (e.g., runc, kata, fc, vm):"
+read -p ">> " PLATFORM
 
 echo "Enter the number of iterations (e.g., 10):"
 read -p ">> " REPEAT
-
-echo "Select the virtualization platform (e.g., runc, kata, fc, vm):"
-read -p ">> " PLATFORM
 
 
 # Remove existing results
@@ -62,7 +61,7 @@ echo "****************************************"
 echo "**** START <CONCURRENCY> EXPERIMENT ****"
 echo "****************************************"
 # Concurrency
-if [[ ${PLATFORM} == "vm" ]]; then ARGS="1 2 3"; else ARGS="1 4 8"; fi
+if [[ ${PLATFORM} == "vm" ]]; then ARGS="1 2 3"; else ARGS="1 2 3 4 8"; fi
 
 for arg in ${ARGS}
 do

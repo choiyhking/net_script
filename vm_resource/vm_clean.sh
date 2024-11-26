@@ -10,7 +10,7 @@ for VM in $(sudo virsh list --all --name | grep ^net-vm-); do
     sudo virsh undefine ${VM} --remove-all-storage --nvram 2> /dev/null
 done
 
-# qcow2, config.xml, ip list
+# Remove qcow2, config.xml, ip list
 for file in $(find . -maxdepth 1 -type f -name "net-vm-*"); do
 	rm -f ${file} > /dev/null 2>&1
 done

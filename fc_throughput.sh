@@ -1,9 +1,11 @@
 #!/bin/bash
 
 
-SERVER_IP="192.168.51.232"
-M_SIZES=(32 64 128 256 512 1024) # array
-TIME="20" # netperf test time (sec)
+
+source ./common_vars.sh
+#SERVER_IP="192.168.51.232"
+#M_SIZES=(32 64 128 256 512 1024) # array
+#TIME="20" # netperf test time (sec)
 PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
@@ -79,7 +81,7 @@ if [ ! -z ${CPU} ]; then
 	fc_resource/fc_run.sh -c ${CPU} -m 4096 -n 1
     echo "Firecracker microVM is running."
 
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(awk '/Guest IP/ {print $3}' fc_resource/fc_info_list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
@@ -111,7 +113,7 @@ elif [ ! -z ${MEMORY} ]; then
 	fc_resource/fc_run.sh -c 4 -m $(convert_to_mb ${MEMORY}) -n 1
     echo "Firecracker microVM is running."
 	
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(awk '/Guest IP/ {print $3}' fc_resource/fc_info_list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
@@ -142,7 +144,7 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	fc_resource/fc_run.sh -c 4 -m 4096 -n 1
     echo "Firecracker microVM is running."
 
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(awk '/Guest IP/ {print $3}' fc_resource/fc_info_list)
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 
@@ -167,14 +169,13 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	fc_resource/fc_run.sh -c 1 -m 512 -n ${INSTANCE_NUM}
     echo "Firecracker microVMs are running."
 
-
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
 	
 	echo "Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo -e "\tRepeat ${i}..."
-		awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
+		awk '/Guest IP/ {print $3}' fc_resource/fc_info_list | \
 			xargs -I {} -P${INSTANCE_NUM} ssh ${SSH_OPTIONS}{} "
 				cd '"${FC_WORKING_DIR}"'
 				[ ! -s '"${RESULT_FILE}"'_"VM"{} ] && echo '"${HEADER}"' | tee '"${RESULT_FILE}"'_"VM"{} > /dev/null
@@ -186,12 +187,10 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 # <DEFAULT> option
 else	
 	sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
-
-		
+	
 	fc_resource/fc_run.sh -c 1 -m 4096 -n 1
 	echo "Firecracker microVM is running."
-	#VM_IP=$(sed -n "1p" fc_resource/fc_ip_list)
-	VM_IP=$(awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list)
+	VM_IP=$(awk '/Guest IP/ {print $3}' fc_resource/fc_info_list)
 	
 	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
@@ -216,7 +215,7 @@ else
 fi
 
 echo "Copy results from Firecracker microVM to host."
-awk '/GUEST IP/ {print $3}' fc_resource/fc_info_list | \
+awk '/Guest IP/ {print $3}' fc_resource/fc_info_list | \
 		xargs -I {} sudo scp -q -r ${SSH_OPTIONS}{}:${FC_WORKING_DIR}${RESULT_DIR} net_result/fc/
 
 echo "Remove existing Firecracker resources."

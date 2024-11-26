@@ -1,9 +1,10 @@
 #!/bin/bash
 
 
-SERVER_IP="192.168.51.232"
-M_SIZES=(32 64 128 256 512 1024) # array
-TIME="20" # netperf test time (sec)
+source ./common_vars.sh
+#SERVER_IP="192.168.51.232"
+#M_SIZES=(32 64 128 256 512 1024) # array
+#TIME="20" # netperf test time (sec)
 PRIVATE_KEY="vm_resource/vm.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
@@ -205,3 +206,4 @@ echo "Remove existing VM resources except for original VM."
 vm_resource/vm_clean.sh
 
 echo "All experiments are completed !!"
+

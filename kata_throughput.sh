@@ -1,16 +1,17 @@
 #!/bin/bash
 
 
+
+source ./common_vars.sh
 CONTAINER_NAME="net_kata"
 IMAGE_NAME="net_ubuntu"
-SERVER_IP="192.168.51.232"
-M_SIZES=(32 64 128 256 512 1024) # array
-TIME="20" # netperf test time (sec)
+#SERVER_IP="192.168.51.232"
+#M_SIZES=(32 64 128 256 512 1024) # array
+#TIME="20" # netperf test time (sec)
 
 
 RESULT_DIR="net_result/kata/throughput/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
-CONT_WORKING_DIR="/root/net_script/"
 KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
@@ -104,8 +105,8 @@ if [ ! -z ${CPU} ]; then
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
-	echo "Start experiments..."
 
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -137,8 +138,8 @@ elif [ ! -z ${MEMORY} ]; then
 	echo "Container[kata] is running"
 	
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
+
 	echo "Start experiments..."
-	
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -171,8 +172,8 @@ elif [ ! -z ${STREAM_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
+
 	echo "Start experiments..."
-	
 	for i in $(seq 1 ${REPEAT} )
 	do
 		echo -e "\tRepeat ${i}..."
@@ -194,7 +195,7 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	
 	for i in $(seq 1 ${INSTANCE_NUM})
 	do
-		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i} # e.g., net_runc_2
+		NEW_CONTAINER_NAME=${CONTAINER_NAME}_${i} # e.g., net_kata_2
 		sudo docker run -d -q --name ${NEW_CONTAINER_NAME} \
 			--runtime=io.containerd.kata.v2 \
 			${IMAGE_NAME}
@@ -203,8 +204,8 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	echo "Containers[kata] are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
+	
 	echo "Start experiments..."
-
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo -e "\tRepeat ${i}..."
@@ -231,8 +232,8 @@ else
 	echo "Container[kata] is running."
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null 
-	echo "Start experiments..."
 
+	echo "Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"

@@ -12,7 +12,7 @@ QCOW_PATH="$HOME/net_script/vm_resource/"
 echo "Enter the number of vCPUs:"
 read -p ">> " CPU
 
-echo "Enter the size of memory (minimum is 2048 MiB):"
+echo "Enter the size(MB) of memory (minimum is 2048):"
 read -p ">> " MEMORY
 
 echo "Enter the size(GB) of disk (e.g., 10):"
@@ -21,7 +21,7 @@ read -p ">> " DISK
 
 
 echo "Remove all existing VMs and resources."
-sudo virsh list --all --name | xargs -I {} sudo virsh shutdown {} 2> /dev/null
+sudo virsh list --all --name | xargs -I {} sudo virsh destroy {} 2> /dev/null
 sudo virsh list --all --name | xargs -I {} sudo virsh undefine {} --nvram --remove-all-storage 2> /dev/null
 
 
@@ -41,7 +41,7 @@ sudo virt-install --name=${VM_NAME} \
 	--disk path=${QCOW_PATH}${VM_NAME}.qcow2,size=${DISK},format=qcow2 \
 	--noautoconsole
 
-echo "VM is created !!"
+echo "Original VM is created !!"
 
 echo ""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
@@ -58,3 +58,4 @@ echo "[To-Do] If you don't want to use swap, RUN \"echo \"vm.swappiness=0\" | su
 echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
+

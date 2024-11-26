@@ -2,14 +2,13 @@
 
 
 cd "$(dirname "$0")"
-#VM_NUM=${1}
 
 HOST_IFACE="eth0"
 NETWORK_IP_PREFIX="172.16.0."
 NETWORK_IP_LAST_OCTET="0"
 SUBNET_MASK="/30"
 SUBNET_SIZE=4
-ROOTFS="ubuntu-22.04.ext4" # Original rootfs. Do not use this directly !!. Only copy allowed.
+ROOTFS="ubuntu-22.04.ext4" # Original rootfs. Do not directly use this !!. Only copying allowed.
 PRIVATE_KEY="ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
@@ -86,7 +85,7 @@ fi
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 # Set up microVM internet access (common)
-sudo iptables -t nat -D POSTROUTING -o i"${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
+sudo iptables -t nat -D POSTROUTING -o "${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
 sudo iptables -t nat -A POSTROUTING -o "${HOST_IFACE}" -j MASQUERADE > /dev/null 2>&1
 sudo iptables -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
 sudo iptables -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1
@@ -141,7 +140,7 @@ VM ${i}:
   PID: $!
   Subnet: ${NETWORK_IP_PREFIX}${NETWORK_IP_LAST_OCTET}${SUBNET_MASK}
   TAP IP: ${TAP_IP}
-  GUEST IP: ${GUEST_IP}
+  Guest IP: ${GUEST_IP}
   MAC Address: ${MAC_ADDR}
 
 EOF
@@ -157,4 +156,15 @@ EOF
     # Next network subnet
     # 172.16.0.0/30, 172.16.0.4/30, ...
     NETWORK_IP_LAST_OCTET=$((NETWORK_IP_LAST_OCTET + SUBNET_SIZE))
+	
+	############################################################################################################
+	# There are 4 available IPs in one subnet.                                                                 #
+	# For example, 172.16.0.0/30                                                                               #  
+	# 172.16.0.0: network address. used to identify the subnet. cannot be assigned as an IP.                   # 
+	# 172.16.0.1: usable host IP -> assigned to tap device                                                     #
+	# 172.16.0.2: usable host IP -> assigned to guest microVM                                                  #
+	# 172.16.0.3: broadcast IP. used to send messages to all hosts in the subnet. cannot be assigned as an IP. #
+	############################################################################################################
 done
+
+

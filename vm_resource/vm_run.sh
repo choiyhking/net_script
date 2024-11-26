@@ -15,7 +15,7 @@ cd "$(dirname "$0")"
 # Functions
 update_network_config() {
 	# ${1}: old guest IP
-	# ${2}: new geuset IP
+	# ${2}: new guest IP
 	# ${3}: new host name
 
 	sed -i "s/[0-9\.]\+\/24/"${2}"\/24/g" 50-cloud-init.yaml	
@@ -34,7 +34,7 @@ convert_to_kb() {
     if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
         result=$(( ${BASH_REMATCH[1]} * 1024 * 1024))
     elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-	i	result=$(( ${BASH_REMATCH[1]} * 1024 ))
+		result=$(( ${BASH_REMATCH[1]} * 1024 ))
     else
         result=${input}
     fi
@@ -65,7 +65,7 @@ wait_for_boot() {
 			echo "Waiting for SSH service to be ready..."
 			sleep 10
 		else
-			echo "VM is booted !"
+			echo "VM is booted!"
 			break
 		fi
 	done
@@ -106,6 +106,7 @@ do
 	OLD_GUEST_IP=$(cat "${BASE_VM}-ip")
 	VM_NAME=${VM_NAME_PREFIX}${i}
 
+	echo "Clone the original VM..."
 	sudo virt-clone --original ${BASE_VM} --name ${VM_NAME} \
 		--file ${QCOW_PATH}${VM_NAME}.qcow2
 	
