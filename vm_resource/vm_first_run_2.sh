@@ -24,7 +24,7 @@ ssh ${SSH_OPTIONS} ${USER}@${IP} "
 	apt update
 	apt install -y git netperf
 	git clone https://github.com/choiyhking/net_script.git
-    mkdir -p net_script/net_result/vm/throughput	
+    mkdir -p net_script/net_result/vm/basic	
 " > /dev/null	
 
 

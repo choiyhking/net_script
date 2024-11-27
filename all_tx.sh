@@ -9,14 +9,14 @@ read -p ">> " REPEAT
 
 
 # Remove existing results
-sudo rm -rf net_result/${PLATFORM}/throughput/
+sudo rm -rf net_result/${PLATFORM}/basic/
 
 
 echo "************************************"
 echo "**** START <DEFAULT> EXPERIMENT ****"
 echo "************************************"
 # default
-./${PLATFORM}_throughput.sh -r "${REPEAT}" 
+./${PLATFORM}_tx.sh -r "${REPEAT}" 
 echo ""
 
 echo "********************************"
@@ -26,7 +26,7 @@ echo "********************************"
 for arg in 1 2 3 4
 do
 	echo "CPU: ${arg}"
-	./${PLATFORM}_throughput.sh -r "${REPEAT}" -c "${arg}"
+	./${PLATFORM}_tx.sh -r "${REPEAT}" -c "${arg}"
 done
 echo ""
 
@@ -40,7 +40,7 @@ if [[ ${PLATFORM} == "vm" ]]; then ARGS="2G 4G 6G"; else ARGS="512m 1G 2G 4G 6G"
 for arg in ${ARGS}
 do
 	echo "MEMORY: ${arg}"
-	./${PLATFORM}_throughput.sh -r "${REPEAT}" -m "${arg}"
+	./${PLATFORM}_tx.sh -r "${REPEAT}" -m "${arg}"
 done
 echo ""
 
@@ -52,7 +52,7 @@ echo "***********************************"
 for arg in 1 3 5 10
 do
 	echo "STREAM: ${arg}"
-	./${PLATFORM}_throughput.sh -r "${REPEAT}" -s "${arg}"
+	./${PLATFORM}_tx.sh -r "${REPEAT}" -s "${arg}"
 done
 echo ""
 
@@ -66,7 +66,7 @@ if [[ ${PLATFORM} == "vm" ]]; then ARGS="1 2 3"; else ARGS="1 2 3 4 8"; fi
 for arg in ${ARGS}
 do
 	echo "CONCURRENCY: ${arg}"
-	./${PLATFORM}_throughput.sh -r "${REPEAT}" -n "${arg}"
+	./${PLATFORM}_tx.sh -r "${REPEAT}" -n "${arg}"
 done
 echo ""
 

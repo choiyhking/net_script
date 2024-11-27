@@ -59,7 +59,7 @@ guest_init() {
     apt update
     apt install -y git netperf
     git clone https://github.com/choiyhking/net_script.git 
-    mkdir -p net_script/net_result/fc/throughput/
+    mkdir -p net_script/net_result/fc/basic/
 EOF
 }
 

@@ -43,8 +43,8 @@ sudo rm -rf filtered_net_result
 for platform in ${PLATFORMS[@]}
 do
 	echo "Platform: ${platform}"
-	path=$HOME/net_script/net_result/${platform}/throughput/
-	res_path=$HOME/net_script/filtered_net_result/${platform}/throughput/
+	path=$HOME/net_script/net_result/${platform}/basic/
+	res_path=$HOME/net_script/filtered_net_result/${platform}/basic/
 
 	mkdir -p ${res_path}
 

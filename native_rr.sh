@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-source ./common_vars.sh
+source ./rr_common_vars.sh
 RESULT_DIR="net_result/native/basic/"
 
 
@@ -32,7 +32,6 @@ fi
 #####################
 echo "TCP_RR: Start experiments..."
 RESULT_FILE_PREFIX="${RESULT_DIR}res_rr"
-HEADER="throughput(trans/s), min_latency(us), max_latency(us), mean_latency(us), stddev_latency(us)"
 
 sudo rm ${RESULT_DIR}*rr* > /dev/null 2>&1
 
