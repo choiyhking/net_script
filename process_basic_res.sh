@@ -61,7 +61,7 @@ do_rr_process(){
 
 
 #PLATFORMS=("runc" "kata" "fc" "vm")
-PLATFORMS=("native")
+PLATFORMS=("runc")
 
 OPTS=("default" \
 	  "cpu_1" "cpu_2" "cpu_3" "cpu_4" \
@@ -85,10 +85,10 @@ do
 	for option in ${OPTS[@]}
 	do
 		# Processing "netperf" results
-		for file in $(ls | grep "${option}_" | grep -v "pidstat" | sort -t '_' -k4n -k5n)
+		for file in $(ls | grep "${option}_" | grep -v "pidstat" | grep -v "mpstat" | sort -t '_' -k4n -k5n)
 		do
 			echo "Processing file: ${file}"
-			dest="${res_path}final_$option.txt"
+			dest="${res_path}final_${option}_netperf.txt"
 			do_netperf_process ${file} ${dest}
 		done
 		
@@ -110,9 +110,8 @@ do
 	done
 
 	# Processing "TCP_RR" results
-	for file in $(ls | grep "rr" | sort -t "_" -k3n)
+	for file in $(ls | grep "_rr_" | sort -t "_" -k3n)
 	do
-		echo "here"
 		echo "Processing file: ${file}"
 		dest="${res_path}final_rr.txt"
 		do_rr_process ${file} ${dest}

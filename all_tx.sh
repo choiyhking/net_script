@@ -9,7 +9,7 @@ read -p ">> " REPEAT
 
 
 # Remove existing results
-sudo rm -rf net_result/${PLATFORM}/basic/
+sudo rm -rf net_result/${PLATFORM}/basic/*_tx_*
 
 
 echo "************************************"
