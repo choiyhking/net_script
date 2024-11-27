@@ -70,7 +70,6 @@ do
 
 	pushd ${path} > /dev/null
 
-: <<'COMMENT'
 	for option in ${OPTS[@]}
 	do
 		# Processing "netperf" results
@@ -89,7 +88,6 @@ do
 			do_pidstat_process ${file} ${dest}
 		done
 	done
-COMMENT
 
 	# Processing "TCP_RR" results
 	for file in $(ls | grep "rr" | sort -t "_" -k3n)
