@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-source ./rr_common_vars.sh
+source ./rr_commons.sh
 PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
@@ -18,21 +18,8 @@ sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
 
-# Get options
-while getopts ":r:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
 
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
+get_options
 
 
 #####################

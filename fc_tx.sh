@@ -2,38 +2,13 @@
 
 
 
-source ./tx_common_vars.sh
+source ./tx_commons.sh
 PRIVATE_KEY="fc_resource/ubuntu-22.04.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
 RESULT_DIR="net_result/fc/basic/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 FC_WORKING_DIR="/root/net_script/"
-
-
-# Functions
-# process: firecracker
-do_pidstat() {
-	local RESULT_FILE=${1}
-	(sleep 1; pidstat -p $(pgrep [f]irecracker) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
-}
-
-convert_to_mb() {
-    local input=${1}
-    local result
-
-	# e.g., 1G -> 1024
-    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 ))
-	# e.g., 512m -> 512
-    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-        result=${BASH_REMATCH[1]}
-    else
-        result=${input}
-    fi
-
-    echo "${result}"
-}
 
 
 ###############
@@ -44,27 +19,7 @@ sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
 
-# Get options
-while getopts ":r:c:m:s:n:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    c) CPU=${OPTARG} ;;
-    m) MEMORY=${OPTARG} ;;
-    s) STREAM_NUM=${OPTARG} ;;
-    n) INSTANCE_NUM=${OPTARG} ;;
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
-
-
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
-
+get_options
 
 #####################
 # Start Experiments #
@@ -88,13 +43,15 @@ if [ ! -z ${CPU} ]; then
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
-            ssh ${SSH_OPTIONS}${VM_IP} "
+			do_pidstat "firecracker" ${RESULT_FILE}
+            do_mpstat ${RESULT_FILE}
+			ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
@@ -120,13 +77,15 @@ elif [ ! -z ${MEMORY} ]; then
 		for i in $(seq 1 ${REPEAT})
         do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "firecracker" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wiat" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
 
@@ -197,12 +156,14 @@ else
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat ${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "firecracker" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${FC_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 

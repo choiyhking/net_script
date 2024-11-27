@@ -1,24 +1,13 @@
 #!/bin/bash
 
 
-source ./tx_common_vars.sh
+source ./tx_commons.sh
 CONTAINER_NAME="net_runc"
 IMAGE_NAME="net_ubuntu"
 
 RESULT_DIR="net_result/runc/basic/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result" # host_path : container_path
-
-# Functions
-# process: netperf
-do_pidstat() {
-	local RESULT_FILE=${1}
-	# Sleep to give netperf time to start 
-	# Actually, it doesn't monitor whole CPU overhead of container. Only "netperf process" in the contianer.
-	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) & 
-	# Background execution
-}
-
 
 ###############
 # Preparation #
@@ -35,27 +24,7 @@ sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
 sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 
-# Get options
-while getopts ":r:c:m:s:n:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    c) CPU=${OPTARG} ;;
-    m) MEMORY=${OPTARG} ;;
-    s) STREAM_NUM=${OPTARG} ;;
-    n) INSTANCE_NUM=${OPTARG} ;;
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
-
-
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
-
+get_options
 
 #####################
 # Start Experiments #
@@ -82,9 +51,11 @@ if [ ! -z ${CPU} ]; then
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "netperf" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
@@ -112,10 +83,12 @@ elif [ ! -z ${MEMORY} ]; then
 		for i in $(seq 1 ${REPEAT})
         do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "netperf" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
             sleep 3
+			kill $(pgrep [m]pstat) > /dev/null
 		done
 
 		echo -e "\tMessage size[${M_SIZE}B] finished."
@@ -202,10 +175,12 @@ else
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "netperf" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			# this doesn't work: docker exec -it my_container "echo a && echo b"
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 		echo -e "\tMessage size[${M_SIZE}B] finished."

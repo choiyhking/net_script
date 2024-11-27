@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-source ./rr_common_vars.sh
+source ./rr_commons.sh
 RESULT_DIR="net_result/native/basic/"
 
 
@@ -10,22 +10,7 @@ RESULT_DIR="net_result/native/basic/"
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-# Get options
-while getopts ":r:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
-
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
-
+get_options
 
 #####################
 # Start Experiments #

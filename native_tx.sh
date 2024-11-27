@@ -1,22 +1,8 @@
 #!/bin/bash
 
 
-source ./common_vars.sh
+source ./tx_commons.sh
 RESULT_DIR="net_result/native/basic/"
-
-
-# Functions
-# process: netperf
-do_pidstat() {
-	local RESULT_FILE=${1}
-	# Sleep to give netperf time to start 
-	(sleep 1; pidstat -p $(pgrep [n]etperf) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) & 
-}
-
-do_mpstat() {
-	local RESULT_FILE=$1
-	(sleep 1; mpstat 1 | sudo tee -a "${RESULT_FILE}_mpstat" > /dev/null) &
-}
 
 
 ###############
@@ -45,7 +31,6 @@ fi
 # Start Experiments #
 #####################
 RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
-HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
 sudo rm ${RESULT_DIR}*default* > /dev/null 2>&1
 
@@ -58,7 +43,7 @@ do
 	for i in $(seq 1 ${REPEAT})
 	do
 		echo -e "\tRepeat #${i}..."
-		do_pidstat ${RESULT_FILE}
+		do_pidstat "netperf" ${RESULT_FILE}
 		do_mpstat ${RESULT_FILE}
 		netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 | sudo tee -a ${RESULT_FILE} > /dev/null
 		kill $(pgrep [m]pstat)

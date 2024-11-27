@@ -1,0 +1,4 @@
+Linux 6.6.31+rpt-rpi-2712 (raspberrypi) 	11/27/2024 	_aarch64_	(4 CPU)
+
+07:07:03 PM   UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+07:07:03 PM     0         1    0.00    0.00    0.00    0.00    0.00     0  systemd

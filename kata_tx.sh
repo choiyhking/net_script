@@ -2,21 +2,13 @@
 
 
 
-source ./tx_common_vars.sh
+source ./tx_commons.sh
 CONTAINER_NAME="net_kata"
 IMAGE_NAME="net_ubuntu"
 
 RESULT_DIR="net_result/kata/basic/"
 RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
-
-
-# Functions
-# process: qemu-system-aarch64
-do_pidstat() {
-	local RESULT_FILE=${1}
-	(sleep 1; pidstat -p $(pgrep [q]emu) 1 2> /dev/null | sudo tee -a "${RESULT_FILE}_pidstat" > /dev/null) &
-}
 
 update_resource_config() {
 	local CPU=${1}
@@ -29,24 +21,6 @@ update_resource_config() {
 	
 	echo -e "\tResource configuration updated."
 }
-
-convert_to_mb() {
-    local input=${1}
-    local result
-
-	# e.g., 1G -> 1024
-    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 ))
-	# e.g., 512m -> 512
-    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-        result=${BASH_REMATCH[1]}
-    else
-        result=${input}
-    fi
-
-    echo "${result}"
-}
-
 
 ###############
 # Preparation #
@@ -62,28 +36,7 @@ echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
 sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
-
-# Get options
-while getopts ":r:c:m:s:n:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    c) CPU=${OPTARG} ;;
-    m) MEMORY=${OPTARG} ;;
-    s) STREAM_NUM=${OPTARG} ;;
-    n) INSTANCE_NUM=${OPTARG} ;;
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
-
-
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
-
+get_options
 
 #####################
 # Start Experiments #
@@ -110,11 +63,13 @@ if [ ! -z ${CPU} ]; then
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "qemu" ${RESULT_FILE}
+			mp_stat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
@@ -143,11 +98,13 @@ elif [ ! -z ${MEMORY} ]; then
 		for i in $(seq 1 ${REPEAT})
         do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "qemu" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
 
@@ -237,11 +194,13 @@ else
 		for i in $(seq 1 ${REPEAT})
 		do
 			echo -e "\tRepeat #${i}..."
-			do_pidstat ${RESULT_FILE}
+			do_pidstat "qemu" ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 

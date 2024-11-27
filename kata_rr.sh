@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-source ./rr_common_vars.sh
+source ./rr_commons.sh
 CONTAINER_NAME="net_kata"
 IMAGE_NAME="net_ubuntu"
 
@@ -23,24 +23,6 @@ update_resource_config() {
 	echo -e "\tResource configuration updated."
 }
 
-convert_to_mb() {
-    local input=${1}
-    local result
-
-	# e.g., 1G -> 1024
-    if [[ "${input}" =~ ^([0-9]+)G$ ]]; then
-        result=$(( ${BASH_REMATCH[1]} * 1024 ))
-	# e.g., 512m -> 512
-    elif [[ "${input}" =~ ^([0-9]+)m$ ]]; then
-        result=${BASH_REMATCH[1]}
-    else
-        result=${input}
-    fi
-
-    echo "${result}"
-}
-
-
 ###############
 # Preparation #
 ###############
@@ -56,21 +38,7 @@ sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
 sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
 
-# Get options
-while getopts ":r:" opt; do
-  case $opt in
-    r) REPEAT=${OPTARG} ;; 
-    \?) echo "Invalid option -${OPTARG}" >&2; exit 1 ;;
-    :) echo "Option -${OPTARG} requires an argument." >&2; exit 1 ;;
-  esac
-done
-
-# "REPEAT" option must be specified
-# -z: check NULL -> return true
-if [ -z "$REPEAT" ]; then
-  echo "Error: -r (repeat) option is required." >&2
-  exit 1
-fi
+get_options
 
 
 #####################

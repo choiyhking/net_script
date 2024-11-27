@@ -12,14 +12,28 @@ do_netperf_process() {
 do_pidstat_process() {
 	# $1: file
 	# $2: dest
-	# 5th: %usr, 6th: %system, 7th: %guest, 8th: %wait, 9th: %CPU
 	
-	awk '!/^Linux/ && !/UID/ && NF { 
-        for (i=5; i<=9; i++) sum[i]+=$i; 
+	awk '!/CPU/ && NF { 
+        for (i=1; i<=NF; i++) sum[i]+=$i; 
         count++ 
      } 
      END { 
-        for (i=5; i<=9; i++) 
+        for (i=1; i<=NF; i++) 
+            printf "%.2f\t", sum[i]/count 
+		print ""
+     }' $1 >> $2
+}
+
+do_mpstat_process() {
+	# $1: file
+	# $2: dest
+	
+	awk '!/CPU/ && NF { 
+        for (i=1; i<=NF; i++) sum[i]+=$i; 
+        count++ 
+     } 
+     END { 
+        for (i=1; i<=NF; i++) 
             printf "%.2f\t", sum[i]/count 
 		print ""
      }' $1 >> $2
@@ -30,9 +44,7 @@ do_rr_process(){
 	# $2: dest
 
     awk 'BEGIN { FS="," } NR > 1 {
-		for (i=1; i<=NF; i++) {
-            sum[i]+=$i 
-        }
+		for (i=1; i<=NF; i++) sum[i]+=$i 
         count++
     }
     END {
@@ -49,7 +61,7 @@ do_rr_process(){
 
 
 #PLATFORMS=("runc" "kata" "fc" "vm")
-PLATFORMS=("kata")
+PLATFORMS=("native")
 
 OPTS=("default" \
 	  "cpu_1" "cpu_2" "cpu_3" "cpu_4" \
@@ -87,11 +99,20 @@ do
 			dest="${res_path}final_${option}_pidstat.txt"
 			do_pidstat_process ${file} ${dest}
 		done
+		
+		# Processing "mpstat" results
+		for file in $(ls | grep "mpstat" | grep "${option}_" | sort -t '_' -k4n -k5n)
+		do
+			echo "Processing file: ${file}"
+			dest="${res_path}final_${option}_mpstat.txt"
+			do_mpstat_process ${file} ${dest}
+		done
 	done
 
 	# Processing "TCP_RR" results
 	for file in $(ls | grep "rr" | sort -t "_" -k3n)
 	do
+		echo "here"
 		echo "Processing file: ${file}"
 		dest="${res_path}final_rr.txt"
 		do_rr_process ${file} ${dest}
