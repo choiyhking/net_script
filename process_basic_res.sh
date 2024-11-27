@@ -25,11 +25,31 @@ do_pidstat_process() {
      }' $1 >> $2
 }
 
+do_rr_process(){
+	# $1: file
+	# $2: dest
+
+    awk 'BEGIN { FS="," } NR > 1 {
+		for (i=1; i<=NF; i++) {
+            sum[i]+=$i 
+        }
+        count++
+    }
+    END {
+        for (i=1; i<=NF; i++) {
+            avg=sum[i]/count
+            printf "%.2f", avg
+            if (i < NF) {
+                printf "\t"
+            }
+        }
+        print ""
+    }' $1 >> $2
+}
 
 
-
-
-PLATFORMS=("runc" "kata" "fc" "vm")
+#PLATFORMS=("runc" "kata" "fc" "vm")
+PLATFORMS=("kata")
 
 OPTS=("default" \
 	  "cpu_1" "cpu_2" "cpu_3" "cpu_4" \
@@ -50,6 +70,7 @@ do
 
 	pushd ${path} > /dev/null
 
+: <<'COMMENT'
 	for option in ${OPTS[@]}
 	do
 		# Processing "netperf" results
@@ -67,6 +88,15 @@ do
 			dest="${res_path}final_${option}_pidstat.txt"
 			do_pidstat_process ${file} ${dest}
 		done
+	done
+COMMENT
+
+	# Processing "TCP_RR" results
+	for file in $(ls | grep "rr" | sort -t "_" -k3n)
+	do
+		echo "Processing file: ${file}"
+		dest="${res_path}final_rr.txt"
+		do_rr_process ${file} ${dest}
 	done
 
 	popd > /dev/null
