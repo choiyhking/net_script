@@ -19,7 +19,7 @@ echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
 
 
-get_options
+get_options $@
 
 
 #####################

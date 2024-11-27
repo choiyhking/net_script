@@ -36,7 +36,7 @@ echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
 sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
-get_options
+get_options $@
 
 #####################
 # Start Experiments #

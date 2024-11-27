@@ -10,7 +10,7 @@ RESULT_DIR="net_result/native/basic/"
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-get_options
+get_options $@
 
 #####################
 # Start Experiments #

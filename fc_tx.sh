@@ -19,7 +19,7 @@ sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 echo "Remove existing Firecracker resources."
 fc_resource/fc_clean.sh
 
-get_options
+get_options $@
 
 #####################
 # Start Experiments #

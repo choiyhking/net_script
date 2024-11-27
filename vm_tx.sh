@@ -15,7 +15,7 @@ VM_WORKING_DIR="/root/net_script/"
 ###############
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
-get_options
+get_options $@
 
 #####################
 # Start Experiments #
