@@ -8,8 +8,8 @@ source ./common_vars.sh
 PRIVATE_KEY="vm_resource/vm.id_rsa"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -i ${PRIVATE_KEY} root@"
 
-RESULT_DIR="net_result/vm/throughput/"
-RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+RESULT_DIR="net_result/vm/basic/"
+RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 VM_WORKING_DIR="/root/net_script/"
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 

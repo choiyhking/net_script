@@ -9,8 +9,8 @@ IMAGE_NAME="net_ubuntu"
 #TIME="20" # netperf test time (sec)
 
 
-RESULT_DIR="net_result/runc/throughput/"
-RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+RESULT_DIR="net_result/runc/basic/"
+RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result" # host_path : container_path
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 

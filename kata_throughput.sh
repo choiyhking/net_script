@@ -10,8 +10,8 @@ IMAGE_NAME="net_ubuntu"
 #TIME="20" # netperf test time (sec)
 
 
-RESULT_DIR="net_result/kata/throughput/"
-RESULT_FILE_PREFIX="${RESULT_DIR}res_throughput"
+RESULT_DIR="net_result/kata/basic/"
+RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
 HEADER="Recv_Socket_Size(B) Send_Socket_Size(B) Send_Message_Size(B) Elapsed_Time(s) Throughput(10^6bps)"
 
