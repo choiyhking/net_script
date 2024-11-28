@@ -45,6 +45,7 @@ do
 		echo -e "\tRepeat #${i}..."
 		do_pidstat "netperf" ${RESULT_FILE}
 		do_mpstat ${RESULT_FILE}
+		do_perfstat "netperf" ${RESULT_FILE}
 		netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 | sudo tee -a ${RESULT_FILE} > /dev/null
 		kill $(pgrep [m]pstat)
 		sleep 3

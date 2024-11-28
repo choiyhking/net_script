@@ -19,8 +19,20 @@ do_pidstat() {
 
 do_mpstat() {
     local result_file=$1
+
     (sleep 1; mpstat 1 | awk '{print $4, $6, $7, $8, $9, $11, $13}' \
         | sudo tee -a "${result_file}_mpstat" > /dev/null) &
+}
+
+do_perfstat() {
+	local target=$(echo "$1" | sed 's/^\(.\)/[\1]/')
+	local result_file=$2
+
+	(sleep 1; sudo perf stat -x, -p $(pgrep ${target}) \
+	 -e cycles:u,cycles:k,instructions:u,instructions:k,cache-misses:u,cache-misses:k,page-faults:u,page-faults:k,context-switches:u,context-switches:k \
+	 2>&1 | sudo tee -a "${result_file}_perfstat" > /dev/null; \
+	 echo "" | sudo tee -a "${result_file}_perfstat" > /dev/null) &
+
 }
 
 get_options() {

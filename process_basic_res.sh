@@ -39,6 +39,27 @@ do_mpstat_process() {
      }' $1 >> $2
 }
 
+do_perfstat_process() {
+	# $1: file
+	# $2: dest
+
+	awk -F',' 'NF {
+		if (!($3 in check)){
+			check[$3] = 1
+			arr[idx++] = $3;
+		}
+		sum[$3] += $1;     
+		count[$3]++;        
+	}
+	END {
+		for (i=0; i<idx; i++) {
+			key=arr[i];
+			printf "%.2f\t", sum[key]/count[key];
+		}
+		print ""
+	}' $1 >> $2
+}
+
 do_rr_process(){
 	# $1: file
 	# $2: dest
@@ -61,7 +82,7 @@ do_rr_process(){
 
 
 #PLATFORMS=("runc" "kata" "fc" "vm")
-PLATFORMS=("runc")
+PLATFORMS=("native")
 
 OPTS=("default" \
 	  "cpu_1" "cpu_2" "cpu_3" "cpu_4" \
@@ -85,7 +106,7 @@ do
 	for option in ${OPTS[@]}
 	do
 		# Processing "netperf" results
-		for file in $(ls | grep "${option}_" | grep -v "pidstat" | grep -v "mpstat" | sort -t '_' -k4n -k5n)
+		for file in $(ls | grep "${option}_" | grep -v "pidstat" | grep -v "mpstat" | grep -v "perfstat" | sort -t '_' -k4n -k5n)
 		do
 			echo "Processing file: ${file}"
 			dest="${res_path}final_${option}_netperf.txt"
@@ -107,6 +128,14 @@ do
 			dest="${res_path}final_${option}_mpstat.txt"
 			do_mpstat_process ${file} ${dest}
 		done
+	done
+
+	# Processing "perfstat" results (only for default option.)
+	for file in $(ls | grep "perfstat" | sort -t "_" -k4n)
+	do
+		echo "Processing file: ${file}"
+		dest="${res_path}final_perfstat.txt"
+		do_perfstat_process ${file} ${dest}
 	done
 
 	# Processing "TCP_RR" results
