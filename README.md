@@ -2,7 +2,7 @@
 ## Data Transmission Experiment (TCP_STREAM)
 - netperf: 외부 서버로 패킷을 보낼 때의 성능 측정.
   - `throughput(Mbps)`
-- pidstat: process CPU usage를 자세하게 측정.
+- pidstat: 가상화 process CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%guest`, `%wait`, `%CPU`
 - mpstat: host 전체 CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%iowait`, `%irq`, `%soft`, `%steal`, `%guest`, `%ideal`
@@ -13,32 +13,32 @@
 - message size
 - CPU core
 - memory size
-- concurrency (e.g., single TCP stream, 10 concurrent TCP stream)
-- scalability (# of instances)
+- \# of stream
+- concurrency (# of instances)
 
-### \<platform\>_tx.sh
+**\<platform\>_tx.sh**
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
-`-c`: 컨테이너의 CPU 개수 업데이트. e.g., 라즈베리파이의 경우 1~4
+`-c`: CPU 할당 개수. e.g., 라즈베리파이의 경우 1~4
 
-`-m`: 컨테이너의 memory size 업데이트: e.g., 512m, 1G
+`-m`: memory size. e.g., 512m, 1G
 
-`-s`: 한 컨테이너 안에서 동시에 실행되는 netperf stream의 개수. e.g., 1, 10
+`-s`: 하나의 가상화 instance에서 동시에 실행되는 netperf stream의 개수. e.g., 1, 10
 
-`-n`: 한 host에서 동시에 실행되는 컨테이너의 개수: e.g., 1, 5, 10
+`-n`: 하나의 host에서 동시에 실행되는 가상화 instance의 개수: e.g., 1, 5, 10
 
 한 번에 하나의 옵션만 사용 가능.
 
 ## Request/Response Experiment (TCP_RR)
-- netperf: 외부 서버와 request-response transaction rate를 측정.
-  - `throughput(trans/s)`, `min_latency(us)`, `max_latency(us)`, `mean_latency(us)`, `stddev_latency(us)`
+- netperf: 외부 서버와 network request-response transaction 성능 측정.
+  - `throughput(transaction/s)`, `min_latency(us)`, `max_latency(us)`, `mean_latency(us)`, `stddev_latency(us)`
 
 **변경 가능한 옵션**
 - request size
 - response size
 
-### \<platform\>_rr.sh
+**\<platform\>_rr.sh**
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
