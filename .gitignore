@@ -1,6 +1,7 @@
 net_result/
 filtered_net_result/
 fc_resource/*.ext4*
+fc_resource/fc_info_list
 vm_resource/*.iso*
 vm_resource/*.qcow2*
 vm_resource/*.xml*
