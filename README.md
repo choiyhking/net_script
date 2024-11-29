@@ -4,10 +4,11 @@
   - `throughput(Mbps)`
 - pidstat: 가상화 process의 CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%guest`, `%wait`, `%CPU`
+- perfstat: 가상화 process의 다양한 low-level 지표 측정.
+  - `CPU cycles`, `instructions`, `cache-misses`, `page-faults`, `context-switches`
 - mpstat: host 전체의 CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%iowait`, `%irq`, `%soft`, `%steal`, `%guest`, `%ideal`
-- perfstat: process의 다양한 low-level 지표 측정.
-  - `CPU cycles`, `instructions`, `cache-misses`, `page-faults`, `context-switches`
+
 
 **변경 가능한 옵션**
 - message size
