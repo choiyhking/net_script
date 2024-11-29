@@ -1,39 +1,22 @@
-# Throughput
-외부 서버 (or instance끼리)와 패킷을 주고 받을 때의 성능 측정.
+# (1) Basic
+## Data Transmission Experiment (TCP_STREAM)
+- netperf: 외부 서버로 패킷을 보낼 때의 성능 측정.
+  - `throughput(Mbps)`
+- pidstat: process CPU usage를 자세하게 측정.
+  - `%usr`, `%system`, `%guest`, `%wait`, `%CPU`
+- mpstat: host 전체 CPU usage를 자세하게 측정.
+  - `%usr`, `%system`, `%iowait`, `%irq`, `%soft`, `%steal`, `%guest`, `%ideal`
+- perfstat: process의 다양한 low-level 지표 측정.
+  - `CPU cycles`, `instructions`, `cache-misses`, `page-faults`, `context-switches`
 
-동시에 CPU usage를 자세하게 측정.
-
-변경 가능한 옵션
+**변경 가능한 옵션**
 - message size
 - CPU core
 - memory size
-- concurrency(e.g., single TCP stream, 10 concurrent TCP stream)
-- scalability(# of instances): 각 instance가 동일한 성능을 보이는지? instance별 성능의 변동폭? 성능의 총 합은 얼마인지?
+- concurrency (e.g., single TCP stream, 10 concurrent TCP stream)
+- scalability (# of instances)
 
-## Preparation
-Local(실험 device)과 server 모두 `netperf` 설치
-```
-sudo apt install -y netperf
-```
-
-Server side에서 `netserver` 실행.
-
-Default port number is 12865.
-```
-netserver
-# netserver -p <port number>
-
-ps aux | grep netserver
-```
-
-Client side에서 netserver로 테스트 수행.
-```
-# netperf -H <server IP> port <port number> -l <test time> -- -m <message size(B)>
-netperf -H 192.168.51.232 -l 20 -- -m 64
-```
-
-## Script
-### \<platform\>_throughput.sh
+### \<platform\>_tx.sh
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
@@ -47,10 +30,32 @@ netperf -H 192.168.51.232 -l 20 -- -m 64
 
 한 번에 하나의 옵션만 사용 가능.
 
-## Trouble Shooting
+## Request/Response Experiment (TCP_RR)
+- netperf: 외부 서버와 request-response transaction rate를 측정.
+  - `throughput(trans/s)`, `min_latency(us)`, `max_latency(us)`, `mean_latency(us)`, `stddev_latency(us)`
+
+**변경 가능한 옵션**
+- request size
+- response size
+
+### \<platform\>_rr.sh
+
+`-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
+
+
+# (2) Performance Interference
+TBD
+
+# (3) Single Application
+TBD
+
+# (4) Microservice
+TBD
+
+# TroubleShooting
+**[Error #1] 컨테이너의 memory allocation을 update하려고 하면 오류 발생**
 - `Your kernel does not support memory limit capabilities or the cgroup is not mounted. Limitation discarded.`
 
-컨테이너의 memory allocation을 update하려고 하면 오류 발생.
 ```
 sudo vim /boot/firmware/cmdline.txt
 # 맨 마지막에 아래 내용 추가. 한 줄에 작성해야 함.
