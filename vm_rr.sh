@@ -20,7 +20,7 @@ get_options $@
 #####################
 # Start Experiments #
 #####################
-sudo rm ${RESULT_DIR}*rr* > /dev/null 2>&1
+sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 	
 vm_resource/vm_run.sh -c 1 -m 4G -n 1
 echo "VM is running."
@@ -37,19 +37,19 @@ for i in ${!REQUEST_SIZES[@]}; do
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat ${i}..."
+			echo -e "\tRepeat #$i..."
 			ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${VM_WORKING_DIR} && 
 
-				netperf -H ${SERVER_IP} -t TCP_RR -l ${TIME} -- -r ${REQ_SIZE},${RESP_SIZE} \
+				(netperf -H ${SERVER_IP} -t TCP_RR -l ${TIME} -- -r ${REQ_SIZE},${RESP_SIZE} \
 				-o throughput,min_latency,max_latency,mean_latency,stddev_latency \
-				| tail -n 1 >> ${RESULT_FILE}
+				| tail -n 1 >> ${RESULT_FILE}) &
 
 				wait" > /dev/null 2>&1
 			sleep 3
 		done
 	
-		echo -e "\tRequest,Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
+		echo -e "\tRequest, Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
 done
 
 echo "Copy results from VM to host."

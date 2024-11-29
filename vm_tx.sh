@@ -24,13 +24,11 @@ get_options $@
 if [ ! -z ${CPU} ]; then
 	sudo rm ${RESULT_DIR}/*cpu_${CPU}* > /dev/null 2>&1
 
-
 	vm_resource/vm_run.sh -c ${CPU} -m 4G -n 1
     echo "VM is running."
-
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -38,8 +36,9 @@ if [ ! -z ${CPU} ]; then
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat #${i}..."
-			do_pidstat "firecracker" ${RESULT_FILE}
+			echo -e "\tRepeat #$i..."
+			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${VM_WORKING_DIR} && 
@@ -47,24 +46,23 @@ if [ ! -z ${CPU} ]; then
 				wait" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <Memory> option
 elif [ ! -z ${MEMORY} ]; then
 	sudo rm ${RESULT_DIR}*mem_${MEMORY}* > /dev/null 2>&1
 
-	
 	vm_resource/vm_run.sh -c 4 -m ${MEMORY} -n 1
     echo "VM is running."
-	
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -72,8 +70,9 @@ elif [ ! -z ${MEMORY} ]; then
 
 		for i in $(seq 1 ${REPEAT})
         do
-			echo -e "\tRepeat #${i}..."
-			do_pidstat "firecracker" ${RESULT_FILE}
+			echo -e "\tRepeat #$i..."
+			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
             ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${VM_WORKING_DIR} && 
@@ -81,11 +80,12 @@ elif [ ! -z ${MEMORY} ]; then
 				wiat" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <STREAM_NUM> option
@@ -94,15 +94,14 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	
 	vm_resource/vm_run.sh -c 4 -m 4G -n 1
     echo "VM is running."
-
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} ssh ${SSH_OPTIONS}${VM_IP} "
 				cd '"${VM_WORKING_DIR}"'
@@ -122,10 +121,10 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		cat vm_resource/net-vm-ip-list | \
 			xargs -I {} -P${INSTANCE_NUM} ssh ${SSH_OPTIONS}{} "
 				cd '"${VM_WORKING_DIR}"'
@@ -142,9 +141,8 @@ else
 	vm_resource/vm_run.sh -c 1 -m 4G -n 1
 	echo "VM is running."
 	VM_IP=$(cat vm_resource/net-vm-ip-list)
-
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
@@ -152,19 +150,21 @@ else
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat ${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			ssh ${SSH_OPTIONS}${VM_IP} "
 				cd ${VM_WORKING_DIR} && 
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 done
 fi
 
@@ -176,4 +176,3 @@ echo "Remove existing VM resources except for original VM."
 vm_resource/vm_clean.sh
 
 echo "All experiments are completed !!"
-

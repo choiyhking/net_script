@@ -1,7 +1,6 @@
 #!/bin/bash
 
 
-
 VM_NAME="original-net-vm"
 STATIC_IP="192.168.122.100"
 USER="root"

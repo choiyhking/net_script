@@ -1,7 +1,6 @@
 #!/bin/bash
 
 
-
 source ./tx_commons.sh
 CONTAINER_NAME="net_kata"
 IMAGE_NAME="net_ubuntu"
@@ -11,8 +10,8 @@ RESULT_FILE_PREFIX="${RESULT_DIR}res_tx"
 KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
 
 update_resource_config() {
-	local CPU=${1}
-	local MEMORY=$(convert_to_mb ${2})
+	local CPU=$1
+	local MEMORY=$(convert_to_mb $2)
 
 	sudo sed -i "s/^default_vcpus = [0-9]\+/default_vcpus = ${CPU}/" "${KATA_CONFIG_PATH}"
 	sudo sed -i "s/^default_memory = [0-9]\+/default_memory = ${MEMORY}/" "${KATA_CONFIG_PATH}"
@@ -28,8 +27,6 @@ update_resource_config() {
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
 echo "Remove existing containers."
-# -f: force
-# -q: quiet
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
 
 echo "Building a new image..."
@@ -54,7 +51,7 @@ if [ ! -z ${CPU} ]; then
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -62,18 +59,20 @@ if [ ! -z ${CPU} ]; then
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat #${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			mp_stat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <Memory> option
@@ -89,7 +88,7 @@ elif [ ! -z ${MEMORY} ]; then
 	
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -97,18 +96,20 @@ elif [ ! -z ${MEMORY} ]; then
 		
 		for i in $(seq 1 ${REPEAT})
         do
-			echo -e "\tRepeat #${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <STREAM_NUM> option
@@ -125,10 +126,10 @@ elif [ ! -z ${STREAM_NUM} ]; then
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for i in $(seq 1 ${REPEAT} )
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		seq 1 ${STREAM_NUM} | \
 		    xargs -I{} -P${STREAM_NUM} sudo docker exec ${CONTAINER_NAME} sh -c '
 				if [ ! -s "'"${RESULT_FILE}"'_{}" ]; then
@@ -157,10 +158,10 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		sudo docker ps -q --filter name=${CONTAINER_NAME} | \
 			xargs -I {} -P${INSTANCE_NUM} sudo docker exec {} sh -c '
 				if [ ! -s "'"${RESULT_FILE}"'_{}" ]; then
@@ -185,7 +186,7 @@ else
 
 	sudo docker exec ${CONTAINER_NAME} mkdir -p ${RESULT_DIR} > /dev/null 
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
@@ -193,18 +194,20 @@ else
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat #${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "qemu" ${RESULT_FILE}
+			do_perfstat "qemu" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
+			kill $(pgrep [p]erfstat) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 fi
 

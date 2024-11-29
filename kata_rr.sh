@@ -12,8 +12,8 @@ KATA_CONFIG_PATH="/opt/kata/share/defaults/kata-containers/configuration.toml"
 
 # Functions
 update_resource_config() {
-	local CPU=${1}
-	local MEMORY=$(convert_to_mb ${2})
+	local CPU=$1
+	local MEMORY=$(convert_to_mb $2)
 
 	sudo sed -i "s/^default_vcpus = [0-9]\+/default_vcpus = ${CPU}/" "${KATA_CONFIG_PATH}"
 	sudo sed -i "s/^default_memory = [0-9]\+/default_memory = ${MEMORY}/" "${KATA_CONFIG_PATH}"
@@ -29,8 +29,6 @@ update_resource_config() {
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
 echo "Remove existing containers."
-# -f: force
-# -q: quiet
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null
 
 echo "Building a new image..."
@@ -44,10 +42,10 @@ get_options $@
 #####################
 # Start Experiments #
 #####################
-sudo rm ${RESULT_DIR}*rr* > /dev/null 2>&1
+sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 
 # (CPU, Memory)
-update_resource_config "1" "4G"
+update_resource_config "4" "4G"
 	
 sudo docker run -d -q --name ${CONTAINER_NAME} \
 	--runtime=io.containerd.kata.v2 \
@@ -66,7 +64,7 @@ for i in ${!REQUEST_SIZES[@]}; do
 
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat #${i}..."
+		echo -e "\tRepeat #$i..."
 		sudo docker exec ${CONTAINER_NAME} \
 			sh -c "netperf -H ${SERVER_IP} -t TCP_RR -l ${TIME} -- -r ${REQ_SIZE},${RESP_SIZE} \
             -o throughput,min_latency,max_latency,mean_latency,stddev_latency \
@@ -74,7 +72,7 @@ for i in ${!REQUEST_SIZES[@]}; do
 		sleep 3
 	done
 
-	echo -e "\tRequest,Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
+	echo -e "\tRequest, Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
 done
 
 echo "Copy all results from Kata Container to host."

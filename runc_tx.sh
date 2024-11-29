@@ -15,16 +15,14 @@ MOUNT_PATH="$HOME/net_script/net_result:/root/net_script/net_result" # host_path
 sudo mkdir -p ${RESULT_DIR} # pwd: $HOME/net_script/
 
 echo "Remove existing containers."
-# -f: force
-# -q: quiet
 sudo docker rm -f $(sudo docker ps -aq) 2> /dev/null 
 
 echo "Building a new image..."
 sudo docker rmi ${IMAGE_NAME} > /dev/null 2>&1
 sudo docker build -q --build-arg CACHE_BUST=$(date +%s) -t ${IMAGE_NAME} .
 
-echo $REPEAT
 get_options $@
+
 
 #####################
 # Start Experiments #
@@ -42,7 +40,7 @@ if [ ! -z ${CPU} ]; then
 		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_cpu_${CPU}_${M_SIZE}
@@ -50,8 +48,9 @@ if [ ! -z ${CPU} ]; then
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat #${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "netperf" ${RESULT_FILE}
+			do_perfstat "netperf" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
@@ -59,7 +58,7 @@ if [ ! -z ${CPU} ]; then
 			sleep 3
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <Memory> option
@@ -74,7 +73,7 @@ elif [ ! -z ${MEMORY} ]; then
 		${IMAGE_NAME}
 	echo "Container[runc] is running"
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 		RESULT_FILE=${RESULT_FILE_PREFIX}_mem_${MEMORY}_${M_SIZE}
@@ -82,8 +81,9 @@ elif [ ! -z ${MEMORY} ]; then
 		
 		for i in $(seq 1 ${REPEAT})
         do
-			echo -e "\tRepeat #${i}..."
-			do_pidstat "netperf" ${RESULT_FILE}
+			echo -e "\tRepeat #$i..."
+			do_pidsdtat "netperf" ${RESULT_FILE}
+			do_perfstat "netperf" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
@@ -91,7 +91,7 @@ elif [ ! -z ${MEMORY} ]; then
 			kill $(pgrep [m]pstat) > /dev/null
 		done
 
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 
 # Modify <STREAM_NUM> option
@@ -108,10 +108,10 @@ elif [ ! -z ${STREAM_NUM} ]; then
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_stream${STREAM_NUM}
 	
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		seq 1 ${STREAM_NUM} | \
 			xargs -I{} -P${STREAM_NUM} sh -c "
 				if [ ! -s ${RESULT_FILE}_{} ]; then
@@ -139,11 +139,11 @@ elif [ ! -z ${INSTANCE_NUM} ]; then
 	echo "Containers[runc] are running."
 
 	RESULT_FILE=${RESULT_FILE_PREFIX}_concurrency${INSTANCE_NUM}
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 
 	for i in $(seq 1 ${REPEAT})
 	do
-		echo -e "\tRepeat ${i}..."
+		echo -e "\tRepeat #$i..."
 		sudo docker ps -q --filter "name=${CONTAINER_NAME}_" | \
 			xargs -I {} -P${INSTANCE_NUM} sh -c "
 				if [ ! -s ${RESULT_FILE}_{} ]; then
@@ -166,7 +166,7 @@ else
 		${IMAGE_NAME}
 	echo "Container[runc] is running."
 
-	echo "Start experiments..."
+	echo "TCP_STREAM: Start experiments..."
 	for M_SIZE in ${M_SIZES[@]}
 	do
 	    RESULT_FILE="${RESULT_FILE_PREFIX}_default_${M_SIZE}"
@@ -174,16 +174,17 @@ else
 
 		for i in $(seq 1 ${REPEAT})
 		do
-			echo -e "\tRepeat #${i}..."
+			echo -e "\tRepeat #$i..."
 			do_pidstat "netperf" ${RESULT_FILE}
+			do_perfstat "netperf" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
-			# this doesn't work: docker exec -it my_container "echo a && echo b"
+			# This doesn't work: docker exec -it my_container "echo a && echo b"
 			sudo docker exec ${CONTAINER_NAME} \
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
-		echo -e "\tMessage size[${M_SIZE}B] finished."
+		echo -e "\tMessage size(${M_SIZE}B) finished."
 	done
 fi
 

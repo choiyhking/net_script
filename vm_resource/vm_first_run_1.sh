@@ -1,12 +1,10 @@
 #!/bin/bash
 
 
-
 VM_NAME="original-net-vm"
 ISO="ubuntu-24.04.1-live-server-arm64.iso"
 OS_VARIANT="ubuntu22.04"
 QCOW_PATH="$HOME/net_script/vm_resource/"
-
 
 
 echo "Enter the number of vCPUs:"
@@ -19,14 +17,13 @@ echo "Enter the size(GB) of disk (e.g., 10):"
 read -p ">> " DISK
 
 
-
 echo "Remove all existing VMs and resources."
 sudo virsh list --all --name | xargs -I {} sudo virsh destroy {} 2> /dev/null
 sudo virsh list --all --name | xargs -I {} sudo virsh undefine {} --nvram --remove-all-storage 2> /dev/null
 
 
 # Check original ISO image
-if [ ! -f "${ISO}" ]; then
+if [ ! -f ${ISO} ]; then
 	echo "ISO image is missing. Downloading..."
 	wget -q -O ${ISO} "https://cdimage.ubuntu.com/releases/noble/release/ubuntu-24.04.1-live-server-arm64.iso"
 fi
@@ -58,4 +55,3 @@ echo "[To-Do] If you don't want to use swap, RUN \"echo \"vm.swappiness=0\" | su
 echo "After that, RUN \"./vm_first_run_2.sh\""
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
 printf '%*s\n' $(tput cols) | tr ' ' '*'	
-

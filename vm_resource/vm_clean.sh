@@ -2,7 +2,7 @@
 
 
 # Move to current script's directory
-cd "$(dirname "$0")"
+cd "$(dirname $0)"
 
 # Remove existing VMs except for original VM
 for VM in $(sudo virsh list --all --name | grep ^net-vm-); do
@@ -14,7 +14,6 @@ done
 for file in $(find . -maxdepth 1 -type f -name "net-vm-*"); do
 	rm -f ${file} > /dev/null 2>&1
 done
-
 
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 # 1: delete page cache
