@@ -13,20 +13,20 @@
 - message size
 - CPU core
 - memory size
-- \# of stream
-- concurrency (# of instances)
+- \# of streams
+- \# of instances
 
 **\<platform\>_tx.sh**
 
 `-r`: 필수 옵션. netperf 실험의 반복 횟수. e.g., 10회
 
-`-c`: CPU 할당 개수. e.g., 라즈베리파이의 경우 1~4
+`-c`: CPU 할당 개수. e.g., 1, 4
 
 `-m`: memory size. e.g., 512m, 1G
 
 `-s`: 하나의 가상화 instance에서 동시에 실행되는 netperf stream의 개수. e.g., 1, 10
 
-`-n`: 하나의 host에서 동시에 실행되는 가상화 instance의 개수: e.g., 1, 5, 10
+`-n`: 하나의 host에서 동시에 실행되는 가상화 instance의 개수. e.g., 1, 5, 10
 
 한 번에 하나의 옵션만 사용 가능.
 
