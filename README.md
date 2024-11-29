@@ -2,9 +2,9 @@
 ## Data Transmission Experiment (TCP_STREAM)
 - netperf: 외부 서버로 패킷을 보낼 때의 성능 측정.
   - `throughput(Mbps)`
-- pidstat: 가상화 process CPU usage를 자세하게 측정.
+- pidstat: 가상화 process의 CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%guest`, `%wait`, `%CPU`
-- mpstat: host 전체 CPU usage를 자세하게 측정.
+- mpstat: host 전체의 CPU usage를 자세하게 측정.
   - `%usr`, `%system`, `%iowait`, `%irq`, `%soft`, `%steal`, `%guest`, `%ideal`
 - perfstat: process의 다양한 low-level 지표 측정.
   - `CPU cycles`, `instructions`, `cache-misses`, `page-faults`, `context-switches`
