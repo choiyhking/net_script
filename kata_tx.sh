@@ -18,7 +18,7 @@ update_resource_config() {
 
 	sudo systemctl restart containerd.service > /dev/null
 	
-	echo -e "\tResource configuration updated."
+	echo "Resource configuration updated."
 }
 
 ###############
@@ -62,12 +62,12 @@ if [ ! -z ${CPU} ]; then
 			echo -e "\tRepeat #$i..."
 			do_pidstat "qemu" ${RESULT_FILE}
 			do_perfstat "qemu" ${RESULT_FILE}
-			mp_stat ${RESULT_FILE}
+			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			kill $(pgrep [p]erfstat) > /dev/null
+			sudo kill -9 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
@@ -104,7 +104,7 @@ elif [ ! -z ${MEMORY} ]; then
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			kill $(pgrep [p]erfstat) > /dev/null
+			sudo kill -9 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
@@ -202,7 +202,7 @@ else
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			kill $(pgrep [p]erfstat) > /dev/null
+			sudo kill -9 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done

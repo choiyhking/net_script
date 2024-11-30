@@ -82,7 +82,7 @@ elif [ ! -z ${MEMORY} ]; then
 		for i in $(seq 1 ${REPEAT})
         do
 			echo -e "\tRepeat #$i..."
-			do_pidsdtat "netperf" ${RESULT_FILE}
+			do_pidstat "netperf" ${RESULT_FILE}
 			do_perfstat "netperf" ${RESULT_FILE}
 			do_mpstat ${RESULT_FILE}
 			sudo docker exec ${CONTAINER_NAME} \
