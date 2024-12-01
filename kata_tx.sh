@@ -67,7 +67,7 @@ if [ ! -z ${CPU} ]; then
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
@@ -104,7 +104,7 @@ elif [ ! -z ${MEMORY} ]; then
                 sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
@@ -202,7 +202,7 @@ else
 				sh -c "netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE}"
 
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done

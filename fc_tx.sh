@@ -50,7 +50,7 @@ if [ ! -z ${CPU} ]; then
 				wait" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
@@ -85,7 +85,7 @@ elif [ ! -z ${MEMORY} ]; then
 				wiat" 2> /dev/null
 
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null
 			kill $(pgrep [m]pstat) > /dev/null
             sleep 3
 		done
@@ -165,7 +165,7 @@ else
 				netperf -H ${SERVER_IP} -l ${TIME} -- -m ${M_SIZE} | tail -n 1 >> ${RESULT_FILE} &
 				wait" > /dev/null 2>&1
 			kill $(pgrep [p]idstat) > /dev/null
-			sudo kill -9 $(pgrep [p]erf) > /dev/null
+			sudo kill -2 $(pgrep [p]erf) > /dev/null # SIGINT. SIGKILL(9) gives no time to process data
 			kill $(pgrep [m]pstat) > /dev/null
 			sleep 3
 		done
