@@ -91,7 +91,7 @@ if [ -z ${CPU} ] || [ -z ${MEMORY} ] || [ -z ${VM_NUM} ]; then
   exit 1
 fi
 
-echo "Remove existing VMs resources except for orginal VM."
+echo "Remove existing VM resources except for original VM."
 ./vm_clean.sh
 
 # Ubuntu 24.04 System Requirements
