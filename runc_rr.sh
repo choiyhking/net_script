@@ -34,7 +34,7 @@ sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 
 sudo docker run -d -q --name ${CONTAINER_NAME} \
 		 -v ${MOUNT_PATH} \
-         --cpus=4 \
+         --cpus=2 \
          --memory=4G \
          --memory-swap=4G \
          ${IMAGE_NAME}
