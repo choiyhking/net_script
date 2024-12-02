@@ -45,7 +45,7 @@ get_options $@
 sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 
 # (CPU, Memory)
-update_resource_config "4" "4G"
+update_resource_config "2" "4G"
 	
 sudo docker run -d -q --name ${CONTAINER_NAME} \
 	--runtime=io.containerd.kata.v2 \
