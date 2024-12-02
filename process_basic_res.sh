@@ -119,7 +119,7 @@ done
 for file in $(ls | grep "perfstat" | sort -t "_" -k4n)
 do
 	echo "Processing file: ${file}"
-	dest="${res_path}final_perfstat.txt"
+	dest="${res_path}final_default_perfstat.txt"
 	do_perfstat_process ${file} ${dest}
 done
 
