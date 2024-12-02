@@ -1,4 +1,9 @@
 # (1) Basic
+
+You should install required packages.
+
+`sudo apt install -y netperf sysstat linux-perf`
+
 ## Data Transmission Experiment (TCP_STREAM)
 - netperf: 외부 서버로 패킷을 보낼 때의 성능 측정.
   - `throughput(Mbps)`
