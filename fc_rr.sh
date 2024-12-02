@@ -49,8 +49,8 @@ for i in ${!REQUEST_SIZES[@]}; do
 			
 			wait" > /dev/null 2>&1
 		sleep 3
-		echo -e "\tRequest, Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
 	done
+	echo -e "\tRequest, Response(${REQ_SIZE}B, ${RESP_SIZE}B) finished."
 done
 
 echo "Copy results from Firecracker microVM to host."
