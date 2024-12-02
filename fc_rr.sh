@@ -25,7 +25,7 @@ get_options $@
 #####################
 sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 
-fc_resource/fc_run.sh -c 4 -m 4096 -n 1
+fc_resource/fc_run.sh -c 2 -m 4096 -n 1
 echo "Firecracker microVM is running."
 VM_IP=$(awk '/Guest IP/ {print $3}' fc_resource/fc_info_list)
 
