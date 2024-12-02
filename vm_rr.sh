@@ -22,7 +22,7 @@ get_options $@
 #####################
 sudo rm ${RESULT_DIR}*_rr_* > /dev/null 2>&1
 	
-vm_resource/vm_run.sh -c 1 -m 4G -n 1
+vm_resource/vm_run.sh -c 2 -m 4G -n 1
 echo "VM is running."
 VM_IP=$(cat vm_resource/net-vm-ip-list)
 
