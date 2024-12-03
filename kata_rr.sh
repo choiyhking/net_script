@@ -20,7 +20,7 @@ update_resource_config() {
 
 	sudo systemctl restart containerd.service > /dev/null
 	
-	echo -e "\tResource configuration updated."
+	echo "Resource configuration updated."
 }
 
 ###############
