@@ -18,7 +18,7 @@ do_pidstat() {
 do_mpstat() {
     local result_file=$1
 
-    (sleep 1; mpstat 1 | awk '{print $4, $6, $7, $8, $9, $11, $13}' \
+    (sleep 1; mpstat 1 | awk '{print $4, $6, $7, $8, $9, $10, $11, $13}' \
         | sudo tee -a "${result_file}_mpstat" > /dev/null) &
 }
 
